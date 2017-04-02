@@ -30,7 +30,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	}
 	w.Add(buttonBox)
 
-	lockButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
+	lockButton, err := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.ICON_SIZE_BUTTON)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create lock button")
 	}

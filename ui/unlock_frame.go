@@ -61,6 +61,16 @@ func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
 	centerBox.Add(w.passphrase)
 	centerBox.SetFocusChild(w.passphrase)
 
+	unlockButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create unlock button")
+	}
+	unlockButton.SetLabel("Unlock")
+	unlockButton.Connect("clicked", w.onUnlock)
+	unlockButton.SetHAlign(gtk.ALIGN_CENTER)
+	unlockButton.SetAlwaysShowImage(true)
+	centerBox.Add(unlockButton)
+
 	return w, nil
 }
 
