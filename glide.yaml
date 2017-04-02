@@ -1,0 +1,9 @@
+package: github.com/untoldwind/trustless-gtk3
+import:
+- package: github.com/untoldwind/trustless
+  subpackages:
+  - api
+  - secrets
+- package: github.com/gotk3/gotk3
+  subpackages:
+  - gtk
