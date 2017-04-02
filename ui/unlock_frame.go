@@ -71,6 +71,7 @@ func (w *unlockFrame) onUnlock() {
 	if err != nil {
 		w.logger.ErrorErr(err)
 	}
+	w.passphrase.SetText("")
 	if err := w.store.actionUnlock(identity, passphrase); err != nil {
 		w.store.actionAddMessage(gtk.MESSAGE_ERROR, "Invalid passphrase", 10*time.Second)
 	}

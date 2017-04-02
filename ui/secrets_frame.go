@@ -26,8 +26,12 @@ func newSecretsFrame(store *Store, logger logging.Logger) (*secretsFrame, error)
 		return nil, err
 	}
 	paned.Add1(entryList)
-	label2, _ := gtk.LabelNew("Right")
-	paned.Add2(label2)
+
+	secretDetail, err := newSecretDetail(store, logger)
+	if err != nil {
+		return nil, err
+	}
+	paned.Add2(secretDetail)
 
 	return w, nil
 }
