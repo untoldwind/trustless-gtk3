@@ -11,7 +11,11 @@ import (
 
 type unlockFrame struct {
 	*gtk.Box
-	logger logging.Logger
+
+	identitySelect *gtk.ComboBoxText
+	passphrase     *gtk.Entry
+	logger         logging.Logger
+	store          *Store
 }
 
 func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
@@ -23,23 +27,8 @@ func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
 	w := &unlockFrame{
 		Box:    box,
 		logger: logger.WithField("package", "ui").WithField("component", "unlockFrame"),
+		store:  store,
 	}
-
-	infoBar, err := gtk.InfoBarNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create infobar")
-	}
-	contentArea, err := infoBar.GetContentArea()
-	if err != nil {
-		return nil, errors.Wrap(err, "Infobar has no content area")
-	}
-	messageLabel, err := gtk.LabelNew("Message")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create messageLabel")
-	}
-	contentArea.Add(messageLabel)
-	infoBar.SetNoShowAll(true)
-	w.Add(infoBar)
 
 	centerBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 5)
 	if err != nil {
@@ -52,28 +41,37 @@ func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
 	w.Add(centerBox)
 	w.SetFocusChild(centerBox)
 
-	identitySelect, err := gtk.ComboBoxTextNew()
+	w.identitySelect, err = gtk.ComboBoxTextNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create identiySelect")
 	}
 	for _, identity := range store.currentState().identities {
-		identitySelect.AppendText(fmt.Sprintf("%s <%s>", identity.Name, identity.Email))
+		w.identitySelect.AppendText(fmt.Sprintf("%s <%s>", identity.Name, identity.Email))
 	}
-	identitySelect.SetActive(0)
-	centerBox.Add(identitySelect)
+	w.identitySelect.SetActive(0)
+	centerBox.Add(w.identitySelect)
 
-	passphrase, err := gtk.EntryNew()
+	w.passphrase, err = gtk.EntryNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create passphrase entry")
 	}
-	passphrase.SetVisibility(false)
-	passphrase.SetInputPurpose(gtk.INPUT_PURPOSE_PASSWORD)
-	passphrase.Connect("activate", func() {
-		fmt.Println(passphrase.GetText())
-		store.actionAddMessage(gtk.MESSAGE_ERROR, "Gra", 10*time.Second)
-	})
-	centerBox.Add(passphrase)
-	centerBox.SetFocusChild(passphrase)
+	w.passphrase.SetVisibility(false)
+	w.passphrase.SetInputPurpose(gtk.INPUT_PURPOSE_PASSWORD)
+	w.passphrase.Connect("activate", w.onUnlock)
+	centerBox.Add(w.passphrase)
+	centerBox.SetFocusChild(w.passphrase)
 
 	return w, nil
+}
+
+func (w *unlockFrame) onUnlock() {
+	idx := w.identitySelect.GetActive()
+	identity := w.store.currentState().identities[idx]
+	passphrase, err := w.passphrase.GetText()
+	if err != nil {
+		w.logger.ErrorErr(err)
+	}
+	if err := w.store.actionUnlock(identity, passphrase); err != nil {
+		w.store.actionAddMessage(gtk.MESSAGE_ERROR, "Invalid passphrase", 10*time.Second)
+	}
 }

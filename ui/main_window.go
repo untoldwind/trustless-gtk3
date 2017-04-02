@@ -46,14 +46,30 @@ func NewMainWindow(secrets secrets.Secrets, logger logging.Logger) (*MainWindow,
 		return nil, err
 	}
 
-	label, err := gtk.LabelNew("Hello, gotk3!")
+	secretsFrame, err := newSecretsFrame(store, logger)
 	if err != nil {
 		return nil, err
 	}
 	w.Add(withMessagePopups)
 	withMessagePopups.Add(stack)
-	stack.Add(unlockFrame)
-	stack.Add(label)
+	w.stack.AddNamed(unlockFrame, "unlockFrame")
+	w.stack.AddNamed(secretsFrame, "secretsFrame")
+	w.stack.ConnectAfter("show", w.onAfterShow)
+
+	w.store.addListener(w.onStateChange)
 
 	return w, nil
+}
+
+func (w *MainWindow) onAfterShow() {
+	state := w.store.currentState()
+	w.onStateChange(&state, &state)
+}
+
+func (w *MainWindow) onStateChange(prev, next *State) {
+	if next.locked {
+		w.stack.SetVisibleChildName("unlockFrame")
+	} else {
+		w.stack.SetVisibleChildName("secretsFrame")
+	}
 }
