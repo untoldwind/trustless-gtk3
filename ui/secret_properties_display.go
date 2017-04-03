@@ -6,6 +6,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless/api"
 )
 
 type secretPropertiesDisplay struct {
@@ -32,6 +33,9 @@ func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay
 	}
 
 	w.grid.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
+	w.grid.SetBorderWidth(5)
+	w.grid.SetColumnSpacing(5)
+	w.grid.SetRowSpacing(5)
 	w.Add(grid)
 
 	return w, nil
@@ -43,28 +47,64 @@ func (w *secretPropertiesDisplay) display(properties map[string]string) {
 	}
 	w.widgets = w.widgets[:0]
 
-	names := make([]string, 0, len(properties))
-	for name := range properties {
-		names = append(names, name)
-	}
-	sort.Strings(names)
+	knownNames := map[string]bool{}
+	for i, propertyDef := range api.SecretProperties {
+		value, ok := properties[propertyDef.Name]
+		if !ok {
+			continue
+		}
+		knownNames[propertyDef.Name] = true
+		label, err := gtk.LabelNew(propertyDef.Display)
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		label.SetHAlign(gtk.ALIGN_START)
+		label.SetVAlign(gtk.ALIGN_START)
+		w.widgets = append(w.widgets, label)
+		w.grid.Attach(label, 0, i, 1, 1)
 
-	for i, name := range names {
+		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, w.logger)
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		valueDisplay.SetHExpand(true)
+		w.widgets = append(w.widgets, valueDisplay)
+		w.grid.Attach(valueDisplay, 1, i, 1, 1)
+	}
+
+	var unknownNames []string
+	for name := range properties {
+		if _, ok := knownNames[name]; ok {
+			continue
+		}
+		unknownNames = append(unknownNames, name)
+	}
+	sort.Strings(unknownNames)
+
+	for i, name := range unknownNames {
 		label, err := gtk.LabelNew(name)
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue
 		}
+		label.SetHAlign(gtk.ALIGN_START)
+		label.SetVAlign(gtk.ALIGN_START)
 		w.widgets = append(w.widgets, label)
-		w.grid.Attach(label, 0, i, 1, 1)
+		w.grid.Attach(label, 0, i+len(knownNames), 1, 1)
 
-		value, err := gtk.LabelNew(properties[name])
+		valueDisplay, err := newSecretValueDisplay(properties[name], false, w.logger)
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue
 		}
-		w.widgets = append(w.widgets, value)
-		w.grid.Attach(value, 1, i, 1, 1)
+		valueDisplay.SetHExpand(true)
+		valueDisplay.SetHAlign(gtk.ALIGN_FILL)
+		w.widgets = append(w.widgets, valueDisplay)
+		w.grid.Attach(valueDisplay, 1, i+len(knownNames), 1, 1)
+
 	}
+
 	w.ShowAll()
 }
