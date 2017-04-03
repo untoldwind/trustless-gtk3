@@ -102,6 +102,10 @@ func (s *Store) actionRefreshEntries() error {
 }
 
 func (s *Store) actionSelectEntry(entryID string) error {
+	current := s.currentState().selectedEntry
+	if current != nil && current.ID == entryID {
+		return nil
+	}
 	secret, err := s.secrets.Get(context.Background(), entryID)
 	if err != nil {
 		s.logger.ErrorErr(err)
