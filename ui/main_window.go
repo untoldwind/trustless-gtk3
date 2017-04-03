@@ -4,7 +4,6 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless/secrets"
 )
 
 type MainWindow struct {
@@ -14,11 +13,7 @@ type MainWindow struct {
 	store *Store
 }
 
-func NewMainWindow(secrets secrets.Secrets, logger logging.Logger) (*MainWindow, error) {
-	store, err := newStore(secrets, logger)
-	if err != nil {
-		return nil, err
-	}
+func NewMainWindow(store *Store, logger logging.Logger) (*MainWindow, error) {
 	window, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create toplevel window")

@@ -23,12 +23,20 @@ func main() {
 	logger := createLogger()
 	secrets := remote.NewRemoteSecrets(logger)
 
-	window, err := ui.NewMainWindow(secrets, logger)
+	store, err := ui.NewStore(secrets, logger)
+	if err != nil {
+		logger.ErrorErr(err)
+		return
+	}
+
+	window, err := ui.NewMainWindow(store, logger)
 	if err != nil {
 		logger.ErrorErr(err)
 		return
 	}
 	window.ShowAll()
 
-	gtk.Main()
+	for gtk.MainIteration() {
+		store.ApplyActions()
+	}
 }
