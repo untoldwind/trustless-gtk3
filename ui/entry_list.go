@@ -85,10 +85,14 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 
 func (w *entryList) onAfterShow() {
 	w.store.actionRefreshEntries()
+
 }
 
 func (w *entryList) onCursorChanged() {
 	cursor, _ := w.treeView.GetCursor()
+	if cursor == nil {
+		return
+	}
 	iter, err := w.listModel.GetIter(cursor)
 	if err != nil {
 		w.logger.ErrorErr(err)
@@ -112,6 +116,9 @@ func (w *entryList) onSearchChanged() {
 }
 
 func (w *entryList) onStateChange(prev, next *State) {
+	var err error
+	var path *gtk.TreePath
+
 	iter, ok := w.listModel.GetIterFirst()
 	var i int
 	for i = 0; ok; i++ {
@@ -128,6 +135,12 @@ func (w *entryList) onStateChange(prev, next *State) {
 					columnEntryID:   entry.ID,
 				})
 			}
+			if entry == next.selectedEntry {
+				path, err = w.listModel.GetPath(iter)
+				if err != nil {
+					w.logger.ErrorErr(err)
+				}
+			}
 			ok = w.listModel.IterNext(iter)
 		} else {
 			ok = w.listModel.Remove(iter)
@@ -141,6 +154,16 @@ func (w *entryList) onStateChange(prev, next *State) {
 			columnEntryID:   entry.ID,
 		})
 	}
+
+	if path == nil {
+		// Ugly workaround
+		path, err = gtk.TreePathNewFromString("1000000")
+		if err != nil {
+			w.logger.ErrorErr(err)
+			return
+		}
+	}
+	w.treeView.SetCursor(path, nil, false)
 }
 
 func (w *entryList) getEntryID(iter *gtk.TreeIter) (string, error) {

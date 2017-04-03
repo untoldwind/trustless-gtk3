@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -10,9 +8,10 @@ import (
 
 type secretDetail struct {
 	*gtk.Box
-	stack  *gtk.Stack
-	logger logging.Logger
-	store  *Store
+	stack               *gtk.Stack
+	secretDetailDisplay *secretDetailDisplay
+	logger              logging.Logger
+	store               *Store
 }
 
 func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error) {
@@ -63,17 +62,24 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	}
 	w.stack.AddNamed(placeholder, "placeholder")
 
+	w.secretDetailDisplay, err = newSecretDetailDisplay(logger)
+	if err != nil {
+		return nil, err
+	}
+	w.stack.AddNamed(w.secretDetailDisplay, "display")
+
 	w.store.addListener(w.onStateChanged)
 
 	return w, nil
 }
 
 func (w *secretDetail) onStateChanged(prev, next *State) {
-	if next.selectedEntry == nil {
+	if next.currentSecret == nil {
 		w.stack.SetVisibleChildName("placeholder")
 		return
 	}
-	fmt.Println(next.selectedEntry)
+	w.stack.SetVisibleChildName("display")
+	w.secretDetailDisplay.display(next.currentSecret)
 }
 
 func (w *secretDetail) onLock() {

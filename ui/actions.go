@@ -139,5 +139,16 @@ func filterSortAndVisible(state *State) *State {
 		}
 	}
 	sort.Sort(entryStoreNameAsc(state.visibleEntries))
+
+	if state.selectedEntry != nil {
+		for _, entry := range state.visibleEntries {
+			if entry == state.selectedEntry {
+				return state
+			}
+		}
+		state.selectedEntry = nil
+		state.currentSecret = nil
+	}
+
 	return state
 }
