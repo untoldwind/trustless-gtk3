@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gotk3/gotk3/gdk"
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -28,6 +29,7 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 		label.SetText("***************")
 	} else {
 		label.SetText(value)
+		label.SetSelectable(true)
 	}
 
 	w := &secretValueDisplay{
@@ -42,15 +44,39 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 	w.Add(w.label)
 
 	if blurred {
+		blurredStack, err := gtk.StackNew()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to create bluredStack")
+		}
+		blurredStack.SetHAlign(gtk.ALIGN_FILL)
+		blurredStack.SetVAlign(gtk.ALIGN_START)
+		w.Add(blurredStack)
+
 		revealButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to create revealButton")
 		}
 
 		revealButton.SetTooltipText("Reveal")
-		revealButton.SetHAlign(gtk.ALIGN_FILL)
-		revealButton.SetVAlign(gtk.ALIGN_START)
-		w.Add(revealButton)
+		revealButton.Connect("clicked", func() {
+			blurredStack.SetVisibleChildName("hide")
+			w.label.SetText(value)
+			w.label.SetSelectable(true)
+		})
+		blurredStack.AddNamed(revealButton, "reveal")
+
+		hideButton, err := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.ICON_SIZE_BUTTON)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to create hideButton")
+		}
+
+		hideButton.SetTooltipText("Hide")
+		hideButton.Connect("clicked", func() {
+			blurredStack.SetVisibleChildName("reveal")
+			w.label.SetText("***************")
+			w.label.SetSelectable(false)
+		})
+		blurredStack.AddNamed(hideButton, "hide")
 	}
 
 	copyButton, err := gtk.ButtonNewFromIconName("edit-copy-symbolic", gtk.ICON_SIZE_BUTTON)
@@ -77,12 +103,12 @@ func (w *secretValueDisplay) safeCopy(atom gdk.Atom, value string) {
 	}
 	clipboard.SetText(value)
 
-	go func() {
+	glib.TimeoutAdd(20000, func() {
 		time.Sleep(20 * time.Second)
 
 		text, err := clipboard.WaitForText()
 		if err != nil && text == value {
 			clipboard.SetText("")
 		}
-	}()
+	})
 }

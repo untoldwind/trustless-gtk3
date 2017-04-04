@@ -4,6 +4,7 @@ import (
 	"context"
 	"sync"
 
+	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/untoldwind/trustless/api"
@@ -56,6 +57,8 @@ func NewStore(secrets secrets.Secrets, logger logging.Logger) (*Store, error) {
 		secrets: secrets,
 	}
 
+	glib.TimeoutAdd(1000, store.checkStatus)
+
 	return store, nil
 }
 
@@ -76,6 +79,7 @@ func (s *Store) dispatch(action StoreAction) {
 	defer s.lock.Unlock()
 
 	s.actionsQueue = append(s.actionsQueue, action)
+	glib.IdleAdd(s.applyActions)
 }
 
 func (s *Store) takeActions() []StoreAction {
@@ -88,24 +92,48 @@ func (s *Store) takeActions() []StoreAction {
 	return actions
 }
 
-func (s *Store) ApplyActions() {
-	for i := 0; i < 10; i++ {
-		actions := s.takeActions()
-		if len(actions) == 0 {
-			return
-		}
+func (s *Store) applyActions() {
+	actions := s.takeActions()
+	if len(actions) == 0 {
+		return
+	}
 
-		for _, action := range actions {
-			prev := s.current
-			if next := action(&s.current); next != nil {
-				s.current = *next
+	for _, action := range actions {
+		prev := s.current
+		if next := action(&s.current); next != nil {
+			s.current = *next
 
-				for _, listener := range s.listeners {
-					listener(&prev, &s.current)
-				}
+			for _, listener := range s.listeners {
+				listener(&prev, &s.current)
 			}
 		}
 	}
-	s.logger.Warn("State did not stabilize after 10 iterations")
-	s.takeActions() // Drop queued actions
+}
+
+func (s *Store) checkStatus() {
+	glib.TimeoutAdd(1000, s.checkStatus)
+
+	status, err := s.secrets.Status(context.Background())
+	if err != nil {
+		s.logger.ErrorErr(err)
+		return
+	}
+
+	s.dispatch(func(state *State) *State {
+		if !state.locked && status.Locked {
+			state.locked = true
+			return state
+		} else if state.locked && !status.Locked {
+			list, err := s.secrets.List(context.Background())
+			if err != nil {
+				s.logger.ErrorErr(err)
+			} else {
+				state.allEntries = list.Entries
+			}
+			state.locked = false
+			state.entryFilter = ""
+			return filterSortAndVisible(state)
+		}
+		return nil
+	})
 }

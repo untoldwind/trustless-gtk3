@@ -36,7 +36,5 @@ func main() {
 	}
 	window.ShowAll()
 
-	for gtk.MainIteration() {
-		store.ApplyActions()
-	}
+	gtk.Main()
 }
