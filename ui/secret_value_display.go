@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"time"
-
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -104,8 +102,6 @@ func (w *secretValueDisplay) safeCopy(atom gdk.Atom, value string) {
 	clipboard.SetText(value)
 
 	glib.TimeoutAdd(20000, func() {
-		time.Sleep(20 * time.Second)
-
 		text, err := clipboard.WaitForText()
 		if err != nil && text == value {
 			clipboard.SetText("")
