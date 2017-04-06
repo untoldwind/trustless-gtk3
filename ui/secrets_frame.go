@@ -7,19 +7,33 @@ import (
 )
 
 type secretsFrame struct {
-	*gtk.Paned
+	*gtk.Box
 	logger logging.Logger
 }
 
 func newSecretsFrame(store *Store, logger logging.Logger) (*secretsFrame, error) {
+	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create box")
+	}
+	w := &secretsFrame{
+		Box:    box,
+		logger: logger.WithField("package", "ui").WithField("component", "secretsFrame"),
+	}
+
+	headerBar, err := NewHeaderBar(store, logger)
+	if err != nil {
+		return nil, err
+	}
+	w.Add(headerBar)
+	w.SetFocusChild(headerBar)
+
 	paned, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create paned")
 	}
-	w := &secretsFrame{
-		Paned:  paned,
-		logger: logger.WithField("package", "ui").WithField("component", "secretsFrame"),
-	}
+	paned.SetVExpand(true)
+	w.Add(paned)
 
 	entryList, err := newEntryList(store, logger)
 	if err != nil {
@@ -32,6 +46,9 @@ func newSecretsFrame(store *Store, logger logging.Logger) (*secretsFrame, error)
 		return nil, err
 	}
 	paned.Add2(secretDetail)
+	paned.ConnectAfter("realize", func() {
+		paned.SetPosition(300)
+	})
 
 	return w, nil
 }

@@ -13,19 +13,21 @@ const (
 )
 
 type entryList struct {
-	*gtk.Box
-	searchEntry *gtk.SearchEntry
-	treeView    *gtk.TreeView
-	listModel   *gtk.ListStore
-	logger      logging.Logger
-	store       *Store
+	*gtk.ScrolledWindow
+	treeView  *gtk.TreeView
+	listModel *gtk.ListStore
+	logger    logging.Logger
+	store     *Store
 }
 
 func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+
+	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
+		return nil, err
 	}
+	scrolledWindow.SetPolicy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+
 	listModel, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create listModel")
@@ -34,35 +36,15 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create treeView")
 	}
-	searchEntry, err := gtk.SearchEntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create searchEntry")
-	}
 	w := &entryList{
-		Box:         box,
-		searchEntry: searchEntry,
-		treeView:    treeView,
-		listModel:   listModel,
-		logger:      logger.WithField("package", "ui").WithField("component", "entryList"),
-		store:       store,
+		ScrolledWindow: scrolledWindow,
+		treeView:       treeView,
+		listModel:      listModel,
+		logger:         logger.WithField("package", "ui").WithField("component", "entryList"),
+		store:          store,
 	}
 
-	w.searchEntry.SetMarginTop(2)
-	w.searchEntry.SetMarginStart(2)
-	w.searchEntry.SetMarginEnd(2)
-	w.searchEntry.SetMarginBottom(2)
-	w.searchEntry.Connect("search-changed", w.onSearchChanged)
-	w.Add(searchEntry)
-
-	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	scrolledWindow.SetPolicy(gtk.POLICY_NEVER, gtk.POLICY_AUTOMATIC)
-	scrolledWindow.SetVExpand(true)
-	w.Add(scrolledWindow)
-
-	scrolledWindow.Add(w.treeView)
+	w.Add(w.treeView)
 
 	cellRenderer, err := gtk.CellRendererTextNew()
 	if err != nil {
@@ -76,16 +58,15 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 	w.treeView.SetHeadersVisible(false)
 
 	w.treeView.ConnectAfter("cursor-changed", w.onCursorChanged)
-	w.treeView.ConnectAfter("show", w.onAfterShow)
+	w.treeView.ConnectAfter("realize", w.onAfterRealize)
 
 	store.addListener(w.onStateChange)
 
 	return w, nil
 }
 
-func (w *entryList) onAfterShow() {
+func (w *entryList) onAfterRealize() {
 	w.store.actionRefreshEntries()
-
 }
 
 func (w *entryList) onCursorChanged() {
@@ -104,15 +85,6 @@ func (w *entryList) onCursorChanged() {
 		return
 	}
 	w.store.actionSelectEntry(entryID)
-}
-
-func (w *entryList) onSearchChanged() {
-	filter, err := w.searchEntry.GetText()
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
-	w.store.actionUpdateEntryFilter(filter)
 }
 
 func (w *entryList) onStateChange(prev, next *State) {
@@ -164,6 +136,7 @@ func (w *entryList) onStateChange(prev, next *State) {
 		}
 	}
 	w.treeView.SetCursor(path, nil, false)
+	w.treeView.ColumnsAutosize()
 }
 
 func (w *entryList) getEntryID(iter *gtk.TreeIter) (string, error) {
