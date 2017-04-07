@@ -11,6 +11,7 @@ type secretDetail struct {
 	*gtk.Box
 	stack               *gtk.Stack
 	secretDetailDisplay *secretDetailDisplay
+	secretDetailEdit    *secretDetailEdit
 	changeButton        *gtk.Button
 	deleteButton        *gtk.MenuButton
 	logger              logging.Logger
@@ -130,6 +131,12 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 		return nil, err
 	}
 	w.stack.AddNamed(w.secretDetailDisplay, "display")
+
+	w.secretDetailEdit, err = newSecretDetailEdit(store, logger)
+	if err != nil {
+		return nil, err
+	}
+	w.stack.AddNamed(w.secretDetailEdit, "edit")
 
 	w.store.addListener(w.onStateChanged)
 

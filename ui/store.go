@@ -38,6 +38,7 @@ type Store struct {
 	listeners    []StoreListener
 	secrets      secrets.Secrets
 	actionsQueue []StoreAction
+	applyQueued  bool
 }
 
 func NewStore(secrets secrets.Secrets, logger logging.Logger) (*Store, error) {
@@ -80,7 +81,10 @@ func (s *Store) dispatch(action StoreAction) {
 	defer s.lock.Unlock()
 
 	s.actionsQueue = append(s.actionsQueue, action)
-	glib.IdleAdd(s.applyActions)
+	if !s.applyQueued {
+		s.applyQueued = true
+		glib.IdleAdd(s.applyActions)
+	}
 }
 
 func (s *Store) takeActions() []StoreAction {
@@ -89,6 +93,7 @@ func (s *Store) takeActions() []StoreAction {
 
 	actions := s.actionsQueue
 	s.actionsQueue = nil
+	s.applyQueued = false
 
 	return actions
 }
