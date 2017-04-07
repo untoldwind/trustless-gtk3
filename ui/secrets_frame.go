@@ -37,7 +37,8 @@ func newSecretsFrame(store *Store, logger logging.Logger) (*secretsFrame, error)
 		return nil, err
 	}
 	right.Add(headerBar)
-	w.SetFocusChild(headerBar)
+	right.SetFocusChild(headerBar)
+	w.SetFocusChild(right)
 
 	paned, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
 	if err != nil {

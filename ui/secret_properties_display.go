@@ -9,10 +9,16 @@ import (
 	"github.com/untoldwind/trustless/api"
 )
 
+type destroyable interface {
+	gtk.IWidget
+
+	Destroy()
+}
+
 type secretPropertiesDisplay struct {
 	*gtk.ScrolledWindow
 	grid    *gtk.Grid
-	widgets []gtk.IWidget
+	widgets []destroyable
 	logger  logging.Logger
 }
 
@@ -44,6 +50,7 @@ func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay
 func (w *secretPropertiesDisplay) display(properties map[string]string) {
 	for _, widget := range w.widgets {
 		w.grid.Remove(widget)
+		widget.Destroy()
 	}
 	w.widgets = w.widgets[:0]
 

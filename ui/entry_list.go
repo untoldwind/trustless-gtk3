@@ -1,10 +1,12 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/glib"
+	"fmt"
+
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless/api"
 )
 
 const (
@@ -12,10 +14,16 @@ const (
 	columnEntryID
 )
 
+type entryRow struct {
+	*gtk.ListBoxRow
+	label *gtk.Label
+	entry *api.SecretEntry
+}
+
 type entryList struct {
 	*gtk.ScrolledWindow
-	treeView  *gtk.TreeView
-	listModel *gtk.ListStore
+	listBox   *gtk.ListBox
+	entryRows []*entryRow
 	logger    logging.Logger
 	store     *Store
 }
@@ -28,37 +36,22 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 	}
 	scrolledWindow.SetPolicy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
 
-	listModel, err := gtk.ListStoreNew(glib.TYPE_STRING, glib.TYPE_STRING)
+	listBox, err := gtk.ListBoxNew()
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create listModel")
-	}
-	treeView, err := gtk.TreeViewNewWithModel(listModel)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create treeView")
+		return nil, errors.Wrap(err, "Failed to create listBox")
 	}
 	w := &entryList{
 		ScrolledWindow: scrolledWindow,
-		treeView:       treeView,
-		listModel:      listModel,
+		listBox:        listBox,
 		logger:         logger.WithField("package", "ui").WithField("component", "entryList"),
 		store:          store,
 	}
 
-	w.Add(w.treeView)
+	w.Add(w.listBox)
 
-	cellRenderer, err := gtk.CellRendererTextNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create cellRenderer")
-	}
-	nameColumn, err := gtk.TreeViewColumnNewWithAttribute("", cellRenderer, "text", columnEntryName)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create nameColumn")
-	}
-	w.treeView.AppendColumn(nameColumn)
-	w.treeView.SetHeadersVisible(false)
-
-	w.treeView.ConnectAfter("cursor-changed", w.onCursorChanged)
-	w.treeView.ConnectAfter("realize", w.onAfterRealize)
+	w.listBox.SetSelectionMode(gtk.SELECTION_SINGLE)
+	w.listBox.ConnectAfter("row-selected", w.onCursorChanged)
+	w.listBox.ConnectAfter("realize", w.onAfterRealize)
 
 	store.addListener(w.onStateChange)
 
@@ -70,79 +63,59 @@ func (w *entryList) onAfterRealize() {
 }
 
 func (w *entryList) onCursorChanged() {
-	cursor, _ := w.treeView.GetCursor()
-	if cursor == nil {
+	row := w.listBox.GetSelectedRow()
+	fmt.Println(row)
+	if row == nil {
 		return
 	}
-	iter, err := w.listModel.GetIter(cursor)
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
-	entryID, err := w.getEntryID(iter)
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
-	w.store.actionSelectEntry(entryID)
+	idx := row.GetIndex()
+	entryRow := w.entryRows[idx]
+	w.store.actionSelectEntry(entryRow.entry.ID)
 }
 
 func (w *entryList) onStateChange(prev, next *State) {
-	var err error
-	var path *gtk.TreePath
-
-	iter, ok := w.listModel.GetIterFirst()
-	var i int
-	for i = 0; ok; i++ {
-		if i < len(next.visibleEntries) {
-			entry := next.visibleEntries[i]
-			entryID, err := w.getEntryID(iter)
+	var selectedRow *gtk.ListBoxRow
+	for i, entry := range next.visibleEntries {
+		if i < len(w.entryRows) {
+			row := w.entryRows[i]
+			row.label.SetText(entry.Name)
+			row.entry = entry
+			if row.entry == next.selectedEntry {
+				selectedRow = row.ListBoxRow
+			}
+			row.ShowAll()
+		} else {
+			listBoxRow, err := gtk.ListBoxRowNew()
 			if err != nil {
 				w.logger.ErrorErr(err)
-				return
+				continue
 			}
-			if entryID != entry.ID {
-				w.listModel.SetCols(iter, gtk.Cols{
-					columnEntryName: entry.Name,
-					columnEntryID:   entry.ID,
-				})
+			label, err := gtk.LabelNew(entry.Name)
+			if err != nil {
+				w.logger.ErrorErr(err)
+				continue
 			}
-			if entry == next.selectedEntry {
-				path, err = w.listModel.GetPath(iter)
-				if err != nil {
-					w.logger.ErrorErr(err)
-				}
+			label.SetHAlign(gtk.ALIGN_START)
+			listBoxRow.Add(label)
+			listBoxRow.ShowAll()
+			row := &entryRow{
+				ListBoxRow: listBoxRow,
+				label:      label,
+				entry:      entry,
 			}
-			ok = w.listModel.IterNext(iter)
-		} else {
-			ok = w.listModel.Remove(iter)
+			w.entryRows = append(w.entryRows, row)
+
+			w.listBox.Add(row)
+
+			if row.entry == next.selectedEntry {
+				selectedRow = row.ListBoxRow
+			}
 		}
 	}
-	for ; i < len(next.visibleEntries); i++ {
-		entry := next.visibleEntries[i]
-		iter := w.listModel.Append()
-		w.listModel.SetCols(iter, gtk.Cols{
-			columnEntryName: entry.Name,
-			columnEntryID:   entry.ID,
-		})
-	}
-
-	w.treeView.ColumnsAutosize()
-	if path == nil {
-		// Ugly workaround
-		path, err = gtk.TreePathNewFromString("1000000")
-		if err != nil {
-			w.logger.ErrorErr(err)
-			return
+	if len(next.visibleEntries) < len(w.entryRows) {
+		for _, row := range w.entryRows[len(next.visibleEntries):] {
+			row.Hide()
 		}
 	}
-	w.treeView.SetCursor(path, nil, false)
-}
-
-func (w *entryList) getEntryID(iter *gtk.TreeIter) (string, error) {
-	entryIDVal, err := w.listModel.GetValue(iter, columnEntryID)
-	if err != nil {
-		return "", err
-	}
-	return entryIDVal.GetString()
+	w.listBox.SelectRow(selectedRow)
 }
