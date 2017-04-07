@@ -63,5 +63,6 @@ func (w *secretDetailDisplay) display(secret *api.Secret) {
 	w.typeLabel.SetText(string(secret.Type))
 	w.propertiesDisplay.display(secret.Current.Properties)
 
-	fmt.Println(secret)
+	fmt.Printf("%#v\n", secret)
+	fmt.Printf("%#v\n", secret.Current)
 }

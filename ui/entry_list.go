@@ -127,6 +127,7 @@ func (w *entryList) onStateChange(prev, next *State) {
 		})
 	}
 
+	w.treeView.ColumnsAutosize()
 	if path == nil {
 		// Ugly workaround
 		path, err = gtk.TreePathNewFromString("1000000")
@@ -136,7 +137,6 @@ func (w *entryList) onStateChange(prev, next *State) {
 		}
 	}
 	w.treeView.SetCursor(path, nil, false)
-	w.treeView.ColumnsAutosize()
 }
 
 func (w *entryList) getEntryID(iter *gtk.TreeIter) (string, error) {

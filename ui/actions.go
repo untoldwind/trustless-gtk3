@@ -10,6 +10,20 @@ import (
 	"github.com/untoldwind/trustless/api"
 )
 
+func (s *Store) actionShowAll() {
+	s.dispatch(func(state *State) *State {
+		state.entryFilterDeleted = false
+		return filterSortAndVisible(state)
+	})
+}
+
+func (s *Store) actionShowDeleted() {
+	s.dispatch(func(state *State) *State {
+		state.entryFilterDeleted = true
+		return filterSortAndVisible(state)
+	})
+}
+
 func (s *Store) actionAddMessage(messageType gtk.MessageType, messageText string, timeout time.Duration) {
 	message := &Message{
 		Type: messageType,
@@ -58,6 +72,7 @@ func (s *Store) actionUnlock(identity api.Identity, passphrase string) error {
 		state.locked = false
 		state.allEntries = list.Entries
 		state.entryFilter = ""
+		state.entryFilterDeleted = false
 		return filterSortAndVisible(state)
 	})
 	return nil
@@ -96,6 +111,8 @@ func (s *Store) actionRefreshEntries() error {
 	}
 	s.dispatch(func(state *State) *State {
 		state.allEntries = list.Entries
+		state.currentSecret = nil
+		state.selectedEntry = nil
 		return filterSortAndVisible(state)
 	})
 	return nil
@@ -126,17 +143,35 @@ func (s *Store) actionSelectEntry(entryID string) error {
 	return nil
 }
 
+func (s *Store) actionMarkDeleted(secretID string) {
+	current := s.currentState().currentSecret
+	if current == nil || current.ID != secretID {
+		s.logger.Warn("Race condition on error. Ignoring action")
+		return
+	}
+	var nextVersion api.SecretVersion
+	nextVersion = *current.Current
+	nextVersion.Deleted = true
+	nextVersion.Timestamp = time.Now()
+	if err := s.secrets.Add(context.Background(), current.ID, current.Type, nextVersion); err != nil {
+		s.logger.ErrorErr(err)
+		return
+	}
+	if err := s.actionRefreshEntries(); err != nil {
+		s.logger.ErrorErr(err)
+	}
+}
+
 func filterSortAndVisible(state *State) *State {
-	if state.entryFilter == "" {
-		state.visibleEntries = make([]*api.SecretEntry, len(state.allEntries))
-		copy(state.visibleEntries, state.allEntries)
-	} else {
-		state.visibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
-		for _, entry := range state.allEntries {
-			if strings.HasPrefix(strings.ToLower(entry.Name), state.entryFilter) {
-				state.visibleEntries = append(state.visibleEntries, entry)
-			}
+	state.visibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
+	for _, entry := range state.allEntries {
+		if entry.Deleted != state.entryFilterDeleted {
+			continue
 		}
+		if state.entryFilter != "" && !strings.HasPrefix(strings.ToLower(entry.Name), state.entryFilter) {
+			continue
+		}
+		state.visibleEntries = append(state.visibleEntries, entry)
 	}
 	sort.Sort(entryStoreNameAsc(state.visibleEntries))
 

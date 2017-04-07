@@ -15,6 +15,7 @@ type secretDetail struct {
 	deleteButton        *gtk.MenuButton
 	logger              logging.Logger
 	store               *Store
+	secretID            string
 }
 
 func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error) {
@@ -92,6 +93,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create confirm button")
 	}
+	deleteConfirm.Connect("clicked", w.onDelete)
 	deleteConfirm.Show()
 	confirmPopover, err := gtk.PopoverNew(w.deleteButton)
 	if err != nil {
@@ -152,13 +154,21 @@ func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
 	return menu, nil
 }
 
+func (w *secretDetail) onDelete() {
+	if w.secretID != "" {
+		w.store.actionMarkDeleted(w.secretID)
+	}
+}
+
 func (w *secretDetail) onStateChanged(prev, next *State) {
 	if next.currentSecret == nil {
+		w.secretID = ""
 		w.changeButton.Hide()
 		w.deleteButton.Hide()
 		w.stack.SetVisibleChildName("placeholder")
 		return
 	}
+	w.secretID = next.currentSecret.ID
 	w.changeButton.Show()
 	w.deleteButton.Show()
 	w.stack.SetVisibleChildName("display")

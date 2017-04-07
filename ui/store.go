@@ -17,14 +17,15 @@ type Message struct {
 }
 
 type State struct {
-	locked         bool
-	identities     []api.Identity
-	allEntries     []*api.SecretEntry
-	visibleEntries []*api.SecretEntry
-	messages       []*Message
-	selectedEntry  *api.SecretEntry
-	currentSecret  *api.Secret
-	entryFilter    string
+	locked             bool
+	identities         []api.Identity
+	allEntries         []*api.SecretEntry
+	visibleEntries     []*api.SecretEntry
+	messages           []*Message
+	selectedEntry      *api.SecretEntry
+	currentSecret      *api.Secret
+	entryFilter        string
+	entryFilterDeleted bool
 }
 
 type StoreListener func(prev, next *State)
