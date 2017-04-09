@@ -1,5 +1,5 @@
 hash: 1e8e4fe7fc93198cce502556196972100c9c7b096e4b5484c7b70f8daa70657b
-updated: 2017-04-06T23:56:39.735910984+02:00
+updated: 2017-04-09T14:58:36.608632251+02:00
 imports:
 - name: github.com/gotk3/gotk3
   version: 54edb5c46d57e3ae5ac4be74685f16039af3e1b6
@@ -20,7 +20,7 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/untoldwind/trustless
-  version: 1b503403f30808c92acc2befc3b962d4f3e3ab72
+  version: 90fb8e652f0f1cdc4dbf2b82d20fcc10b1fa86ba
   subpackages:
   - api
   - secrets

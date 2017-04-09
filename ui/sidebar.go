@@ -4,6 +4,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless/api"
 )
 
 type sidebar struct {
@@ -30,6 +31,16 @@ func newSidebar(store *Store, logger logging.Logger) (*sidebar, error) {
 	showAll.Connect("clicked", w.onShowAll)
 	w.Add(showAll)
 
+	for _, secretType := range api.SecretTypes {
+		showType, err := gtk.LinkButtonNew(secretType.Display)
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		showType.Connect("clicked", w.onShowType(secretType.Type))
+		w.Add(showType)
+	}
+
 	showTrash, err := gtk.LinkButtonNew("Trash")
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create showTrash")
@@ -45,6 +56,12 @@ func newSidebar(store *Store, logger logging.Logger) (*sidebar, error) {
 
 func (w *sidebar) onShowAll() {
 	w.store.actionShowAll()
+}
+
+func (w *sidebar) onShowType(secretType api.SecretType) func() {
+	return func() {
+		w.store.actionShowType(secretType)
+	}
 }
 
 func (w *sidebar) onShowTrash() {

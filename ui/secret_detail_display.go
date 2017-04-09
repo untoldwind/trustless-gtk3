@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"fmt"
 	"html"
 
 	"github.com/gotk3/gotk3/gtk"
@@ -14,11 +13,18 @@ type secretDetailDisplay struct {
 	*gtk.Grid
 	nameLabel         *gtk.Label
 	typeLabel         *gtk.Label
+	timestampLabel    *gtk.Label
 	propertiesDisplay *secretPropertiesDisplay
 	logger            logging.Logger
+	typeNameMap       map[api.SecretType]string
 }
 
 func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error) {
+	typeNameMap := map[api.SecretType]string{}
+	for _, secretType := range api.SecretTypes {
+		typeNameMap[secretType.Type] = secretType.Display
+	}
+
 	grid, err := gtk.GridNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create grid")
@@ -31,6 +37,10 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create typeLabel")
 	}
+	timestampLabel, err := gtk.LabelNew("")
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create timestampLabel")
+	}
 	propertiesDisplay, err := newSecretPropertiesDisplay(logger)
 	if err != nil {
 		return nil, err
@@ -40,29 +50,37 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 		Grid:              grid,
 		nameLabel:         nameLabel,
 		typeLabel:         typeLabel,
+		timestampLabel:    timestampLabel,
 		propertiesDisplay: propertiesDisplay,
 		logger:            logger.WithField("package", "ui").WithField("component", "secretDetailDisplay"),
+		typeNameMap:       typeNameMap,
 	}
 	w.SetOrientation(gtk.ORIENTATION_VERTICAL)
 
-	w.nameLabel.SetHExpand(true)
-	w.Add(w.nameLabel)
+	w.typeLabel.SetMarginStart(5)
+	w.Attach(w.typeLabel, 0, 0, 1, 1)
 
-	w.typeLabel.SetHExpand(true)
-	w.Add(w.typeLabel)
+	w.nameLabel.SetHExpand(true)
+	w.Attach(w.nameLabel, 1, 0, 1, 1)
+
+	w.timestampLabel.SetHExpand(true)
+	w.timestampLabel.SetHAlign(gtk.ALIGN_END)
+	w.Attach(w.timestampLabel, 1, 1, 1, 1)
 
 	w.propertiesDisplay.SetHExpand(true)
 	w.propertiesDisplay.SetVExpand(true)
-	w.Add(w.propertiesDisplay)
+	w.Attach(w.propertiesDisplay, 0, 2, 2, 1)
 
 	return w, nil
 }
 
 func (w *secretDetailDisplay) display(secret *api.Secret) {
 	w.nameLabel.SetMarkup("<span font=\"20\">" + html.EscapeString(secret.Current.Name) + "</span>")
-	w.typeLabel.SetText(string(secret.Type))
-	w.propertiesDisplay.display(secret.Current.Properties)
-
-	fmt.Printf("%#v\n", secret)
-	fmt.Printf("%#v\n", secret.Current)
+	typeNameDisplay, ok := w.typeNameMap[secret.Type]
+	if !ok {
+		typeNameDisplay = string(secret.Type)
+	}
+	w.typeLabel.SetText(typeNameDisplay)
+	w.timestampLabel.SetText(secret.Current.Timestamp.String())
+	w.propertiesDisplay.display(secret.Current)
 }

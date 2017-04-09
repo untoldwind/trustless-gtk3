@@ -1,11 +1,13 @@
 package ui
 
 import (
-	"sort"
+	"html"
 
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/gtkextra"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -19,6 +21,7 @@ type secretPropertiesDisplay struct {
 	*gtk.ScrolledWindow
 	grid    *gtk.Grid
 	widgets []destroyable
+	rows    int
 	logger  logging.Logger
 }
 
@@ -47,20 +50,98 @@ func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay
 	return w, nil
 }
 
-func (w *secretPropertiesDisplay) display(properties map[string]string) {
-	for _, widget := range w.widgets {
-		w.grid.Remove(widget)
-		widget.Destroy()
-	}
-	w.widgets = w.widgets[:0]
+func (w *secretPropertiesDisplay) display(secretVersion *api.SecretVersion) {
+	w.destroyAllChildren()
 
-	knownNames := map[string]bool{}
-	for i, propertyDef := range api.SecretProperties {
+	w.renderUrls(secretVersion.URLs)
+
+	knownNames := w.renderProperties(api.SecretProperties, secretVersion.Properties)
+
+	var unknownPropertyDefs api.SecretPropertyList
+	for name := range secretVersion.Properties {
+		if _, ok := knownNames[name]; ok {
+			continue
+		}
+		unknownPropertyDefs = append(unknownPropertyDefs, api.SecretProperty{
+			Name:    name,
+			Display: name,
+		})
+	}
+	unknownPropertyDefs.Sort()
+
+	w.renderProperties(unknownPropertyDefs, secretVersion.Properties)
+
+	w.ShowAll()
+}
+
+func (w *secretPropertiesDisplay) renderUrls(urls []string) {
+	if len(urls) == 0 {
+		return
+	}
+	label, err := gtk.LabelNew("URLs")
+	if err != nil {
+		w.logger.ErrorErr(err)
+		return
+	}
+	label.SetHAlign(gtk.ALIGN_START)
+	label.SetVAlign(gtk.ALIGN_START)
+	w.widgets = append(w.widgets, label)
+	w.grid.Attach(label, 0, w.rows, 1, 1)
+
+	for _, url := range urls {
+		valueBox, err := gtk.EventBoxNew()
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		valueBox.SetHExpand(true)
+		valueBox.SetHAlign(gtk.ALIGN_START)
+		valueBox.Connect("button-press-event", func() {
+			if err := gtkextra.ShowUri(nil, url); err != nil {
+				w.logger.ErrorErr(err)
+			}
+		})
+		valueBox.Connect("realize", func() {
+			window, err := valueBox.GetWindow()
+			if err != nil {
+				w.logger.ErrorErr(err)
+				return
+			}
+			display, err := gdk.DisplayGetDefault()
+			if err != nil {
+				w.logger.ErrorErr(err)
+				return
+			}
+			cursor, err := gtkextra.CursorNewFromName(display, "pointer")
+			if err != nil {
+				w.logger.ErrorErr(err)
+				return
+			}
+			gtkextra.WindowSetCursor(window, cursor)
+		})
+
+		w.widgets = append(w.widgets, valueBox)
+		w.grid.Attach(valueBox, 1, w.rows, 1, 1)
+		w.rows++
+
+		valueLabel, err := gtk.LabelNew(url)
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		valueLabel.SetMarkup("<span color=\"blue\">" + html.EscapeString(url) + "</span>")
+		valueBox.Add(valueLabel)
+	}
+}
+
+func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretPropertyList, properties map[string]string) map[string]bool {
+	renderedNames := map[string]bool{}
+	for _, propertyDef := range propertyDefs {
 		value, ok := properties[propertyDef.Name]
 		if !ok {
 			continue
 		}
-		knownNames[propertyDef.Name] = true
+		renderedNames[propertyDef.Name] = true
 		label, err := gtk.LabelNew(propertyDef.Display)
 		if err != nil {
 			w.logger.ErrorErr(err)
@@ -69,7 +150,7 @@ func (w *secretPropertiesDisplay) display(properties map[string]string) {
 		label.SetHAlign(gtk.ALIGN_START)
 		label.SetVAlign(gtk.ALIGN_START)
 		w.widgets = append(w.widgets, label)
-		w.grid.Attach(label, 0, i, 1, 1)
+		w.grid.Attach(label, 0, w.rows, 1, 1)
 
 		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, w.logger)
 		if err != nil {
@@ -78,40 +159,19 @@ func (w *secretPropertiesDisplay) display(properties map[string]string) {
 		}
 		valueDisplay.SetHExpand(true)
 		w.widgets = append(w.widgets, valueDisplay)
-		w.grid.Attach(valueDisplay, 1, i, 1, 1)
+		w.grid.Attach(valueDisplay, 1, w.rows, 1, 1)
+
+		w.rows++
 	}
 
-	var unknownNames []string
-	for name := range properties {
-		if _, ok := knownNames[name]; ok {
-			continue
-		}
-		unknownNames = append(unknownNames, name)
+	return renderedNames
+}
+
+func (w *secretPropertiesDisplay) destroyAllChildren() {
+	for _, widget := range w.widgets {
+		w.grid.Remove(widget)
+		widget.Destroy()
 	}
-	sort.Strings(unknownNames)
-
-	for i, name := range unknownNames {
-		label, err := gtk.LabelNew(name)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
-		label.SetHAlign(gtk.ALIGN_START)
-		label.SetVAlign(gtk.ALIGN_START)
-		w.widgets = append(w.widgets, label)
-		w.grid.Attach(label, 0, i+len(knownNames), 1, 1)
-
-		valueDisplay, err := newSecretValueDisplay(properties[name], false, w.logger)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
-		valueDisplay.SetHExpand(true)
-		valueDisplay.SetHAlign(gtk.ALIGN_FILL)
-		w.widgets = append(w.widgets, valueDisplay)
-		w.grid.Attach(valueDisplay, 1, i+len(knownNames), 1, 1)
-
-	}
-
-	w.ShowAll()
+	w.widgets = w.widgets[:0]
+	w.rows = 0
 }

@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -29,7 +27,6 @@ type entryList struct {
 }
 
 func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
-
 	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
 		return nil, err
@@ -64,7 +61,6 @@ func (w *entryList) onAfterRealize() {
 
 func (w *entryList) onCursorChanged() {
 	row := w.listBox.GetSelectedRow()
-	fmt.Println(row)
 	if row == nil {
 		return
 	}

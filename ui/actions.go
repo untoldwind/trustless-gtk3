@@ -13,6 +13,15 @@ import (
 func (s *Store) actionShowAll() {
 	s.dispatch(func(state *State) *State {
 		state.entryFilterDeleted = false
+		state.entryFilterType = ""
+		return filterSortAndVisible(state)
+	})
+}
+
+func (s *Store) actionShowType(secretType api.SecretType) {
+	s.dispatch(func(state *State) *State {
+		state.entryFilterDeleted = false
+		state.entryFilterType = secretType
 		return filterSortAndVisible(state)
 	})
 }
@@ -20,6 +29,7 @@ func (s *Store) actionShowAll() {
 func (s *Store) actionShowDeleted() {
 	s.dispatch(func(state *State) *State {
 		state.entryFilterDeleted = true
+		state.entryFilterType = ""
 		return filterSortAndVisible(state)
 	})
 }
@@ -166,6 +176,9 @@ func filterSortAndVisible(state *State) *State {
 	state.visibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
 	for _, entry := range state.allEntries {
 		if entry.Deleted != state.entryFilterDeleted {
+			continue
+		}
+		if state.entryFilterType != "" && entry.Type != state.entryFilterType {
 			continue
 		}
 		if state.entryFilter != "" && !strings.HasPrefix(strings.ToLower(entry.Name), state.entryFilter) {

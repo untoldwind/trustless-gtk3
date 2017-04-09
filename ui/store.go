@@ -25,6 +25,7 @@ type State struct {
 	selectedEntry      *api.SecretEntry
 	currentSecret      *api.Secret
 	entryFilter        string
+	entryFilterType    api.SecretType
 	entryFilterDeleted bool
 }
 
