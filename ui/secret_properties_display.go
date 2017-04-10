@@ -137,6 +137,6 @@ func (w *secretPropertiesDisplay) destroyAllChildren() {
 		w.grid.Remove(widget)
 		widget.Destroy()
 	}
-	w.widgets = w.widgets[:0]
+	w.widgets = nil
 	w.rows = 0
 }
