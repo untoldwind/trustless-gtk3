@@ -24,6 +24,7 @@ type State struct {
 	messages           []*Message
 	selectedEntry      *api.SecretEntry
 	currentSecret      *api.Secret
+	currentEdit        bool
 	entryFilter        string
 	entryFilterType    api.SecretType
 	entryFilterDeleted bool

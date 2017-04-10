@@ -14,34 +14,27 @@ type destroyable interface {
 }
 
 type secretPropertiesDisplay struct {
-	*gtk.ScrolledWindow
-	grid    *gtk.Grid
+	*gtk.Grid
 	widgets []destroyable
 	rows    int
 	logger  logging.Logger
 }
 
 func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay, error) {
-	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create scrolled window")
-	}
 	grid, err := gtk.GridNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create grid")
 	}
 
 	w := &secretPropertiesDisplay{
-		ScrolledWindow: scrolledWindow,
-		grid:           grid,
-		logger:         logger.WithField("package", "ui").WithField("component", "secretPropertiesDisplay"),
+		Grid:   grid,
+		logger: logger.WithField("package", "ui").WithField("component", "secretPropertiesDisplay"),
 	}
 
-	w.grid.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
-	w.grid.SetBorderWidth(5)
-	w.grid.SetColumnSpacing(5)
-	w.grid.SetRowSpacing(5)
-	w.Add(grid)
+	w.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
+	w.SetBorderWidth(5)
+	w.SetColumnSpacing(5)
+	w.SetRowSpacing(5)
 
 	return w, nil
 }
@@ -82,7 +75,7 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 	label.SetHAlign(gtk.ALIGN_START)
 	label.SetVAlign(gtk.ALIGN_START)
 	w.widgets = append(w.widgets, label)
-	w.grid.Attach(label, 0, w.rows, 1, 1)
+	w.Attach(label, 0, w.rows, 1, 1)
 
 	for _, url := range urls {
 		urlLabel, err := newUrlLabel(w.logger, url)
@@ -94,7 +87,7 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 		urlLabel.SetHAlign(gtk.ALIGN_START)
 
 		w.widgets = append(w.widgets, urlLabel)
-		w.grid.Attach(urlLabel, 1, w.rows, 1, 1)
+		w.Attach(urlLabel, 1, w.rows, 1, 1)
 		w.rows++
 	}
 }
@@ -115,7 +108,7 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 		label.SetHAlign(gtk.ALIGN_START)
 		label.SetVAlign(gtk.ALIGN_START)
 		w.widgets = append(w.widgets, label)
-		w.grid.Attach(label, 0, w.rows, 1, 1)
+		w.Attach(label, 0, w.rows, 1, 1)
 
 		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, w.logger)
 		if err != nil {
@@ -124,7 +117,7 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 		}
 		valueDisplay.SetHExpand(true)
 		w.widgets = append(w.widgets, valueDisplay)
-		w.grid.Attach(valueDisplay, 1, w.rows, 1, 1)
+		w.Attach(valueDisplay, 1, w.rows, 1, 1)
 
 		w.rows++
 	}
@@ -134,7 +127,7 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 
 func (w *secretPropertiesDisplay) destroyAllChildren() {
 	for _, widget := range w.widgets {
-		w.grid.Remove(widget)
+		w.Remove(widget)
 		widget.Destroy()
 	}
 	w.widgets = nil

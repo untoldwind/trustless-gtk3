@@ -12,8 +12,11 @@ type secretDetail struct {
 	stack               *gtk.Stack
 	secretDetailDisplay *secretDetailDisplay
 	secretDetailEdit    *secretDetailEdit
+	newButton           *gtk.MenuButton
 	changeButton        *gtk.Button
 	deleteButton        *gtk.MenuButton
+	abortEditButton     *gtk.Button
+	saveEditButton      *gtk.Button
 	logger              logging.Logger
 	store               *Store
 	secretID            string
@@ -28,6 +31,10 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create stack")
 	}
+	newButton, err := gtk.MenuButtonNew()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create new button")
+	}
 	changeButton, err := gtk.ButtonNewFromIconName("document-open-symbolic", gtk.ICON_SIZE_BUTTON)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create changeButton")
@@ -36,14 +43,25 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create deleteButton")
 	}
+	abortEditButton, err := gtk.ButtonNewFromIconName("window-close-symbolic", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create abourtEditButton")
+	}
+	saveEditButton, err := gtk.ButtonNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create saveEditButton")
+	}
 
 	w := &secretDetail{
-		Box:          box,
-		stack:        stack,
-		changeButton: changeButton,
-		deleteButton: deleteButton,
-		logger:       logger.WithField("package", "ui").WithField("component", "secretDetail"),
-		store:        store,
+		Box:             box,
+		stack:           stack,
+		newButton:       newButton,
+		changeButton:    changeButton,
+		deleteButton:    deleteButton,
+		abortEditButton: abortEditButton,
+		saveEditButton:  saveEditButton,
+		logger:          logger.WithField("package", "ui").WithField("component", "secretDetail"),
+		store:           store,
 	}
 
 	w.stack.SetHExpand(true)
@@ -56,10 +74,6 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	}
 	w.Add(buttonBox)
 
-	newButton, err := gtk.MenuButtonNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create new button")
-	}
 	newImage, err := gtk.ImageNewFromIconName("list-add-symbolic", gtk.ICON_SIZE_BUTTON)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create newImage")
@@ -70,15 +84,15 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 		return nil, err
 	}
 
-	newButton.SetImage(newImage)
-	newButton.SetHAlign(gtk.ALIGN_START)
-	newButton.SetMarginTop(2)
-	newButton.SetMarginStart(2)
-	newButton.SetMarginEnd(2)
-	newButton.SetMarginBottom(2)
-	newButton.SetPopup(newMenu)
-	newButton.SetDirection(gtk.ARROW_UP)
-	buttonBox.Add(newButton)
+	w.newButton.SetImage(newImage)
+	w.newButton.SetHAlign(gtk.ALIGN_START)
+	w.newButton.SetMarginTop(2)
+	w.newButton.SetMarginStart(2)
+	w.newButton.SetMarginEnd(2)
+	w.newButton.SetMarginBottom(2)
+	w.newButton.SetPopup(newMenu)
+	w.newButton.SetDirection(gtk.ARROW_UP)
+	buttonBox.Add(w.newButton)
 
 	w.changeButton.SetLabel("Change")
 	w.changeButton.SetAlwaysShowImage(true)
@@ -88,7 +102,19 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	w.changeButton.SetMarginEnd(2)
 	w.changeButton.SetMarginBottom(2)
 	w.changeButton.SetNoShowAll(true)
+	w.changeButton.Connect("clicked", w.store.actionEditCurrent)
 	buttonBox.Add(w.changeButton)
+
+	w.abortEditButton.SetLabel("Abort")
+	w.abortEditButton.SetAlwaysShowImage(true)
+	w.abortEditButton.SetHAlign(gtk.ALIGN_START)
+	w.abortEditButton.SetMarginTop(2)
+	w.abortEditButton.SetMarginStart(2)
+	w.abortEditButton.SetMarginEnd(2)
+	w.abortEditButton.SetMarginBottom(2)
+	w.abortEditButton.SetNoShowAll(true)
+	w.abortEditButton.Connect("clicked", w.store.actionEditAbort)
+	buttonBox.Add(w.abortEditButton)
 
 	deleteConfirm, err := gtk.ButtonNewWithLabel("Confirm")
 	if err != nil {
@@ -120,6 +146,18 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	w.deleteButton.SetNoShowAll(true)
 	buttonBox.Add(w.deleteButton)
 
+	w.saveEditButton.SetLabel("Save")
+	w.saveEditButton.SetAlwaysShowImage(true)
+	w.saveEditButton.SetHAlign(gtk.ALIGN_END)
+	w.saveEditButton.SetHExpand(true)
+	w.saveEditButton.SetMarginTop(2)
+	w.saveEditButton.SetMarginStart(2)
+	w.saveEditButton.SetMarginEnd(2)
+	w.saveEditButton.SetMarginBottom(2)
+	w.saveEditButton.SetNoShowAll(true)
+	w.saveEditButton.Connect("clicked", w.onEditSave)
+	buttonBox.Add(w.saveEditButton)
+
 	placeholder, err := newSecretDetailPlaceholder()
 	if err != nil {
 		return nil, err
@@ -132,7 +170,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	}
 	w.stack.AddNamed(w.secretDetailDisplay, "display")
 
-	w.secretDetailEdit, err = newSecretDetailEdit(store, logger)
+	w.secretDetailEdit, err = newSecretDetailEdit(logger)
 	if err != nil {
 		return nil, err
 	}
@@ -167,17 +205,37 @@ func (w *secretDetail) onDelete() {
 	}
 }
 
+func (w *secretDetail) onEditSave() {
+
+}
+
 func (w *secretDetail) onStateChanged(prev, next *State) {
 	if next.currentSecret == nil {
 		w.secretID = ""
+		w.newButton.Show()
 		w.changeButton.Hide()
 		w.deleteButton.Hide()
+		w.abortEditButton.Hide()
+		w.saveEditButton.Hide()
 		w.stack.SetVisibleChildName("placeholder")
+		return
+	} else if next.currentEdit {
+		w.secretID = next.currentSecret.ID
+		w.newButton.Hide()
+		w.changeButton.Hide()
+		w.deleteButton.Hide()
+		w.abortEditButton.Show()
+		w.saveEditButton.Show()
+		w.stack.SetVisibleChildName("edit")
+		w.secretDetailEdit.setEdit(&next.currentSecret.SecretCurrent)
 		return
 	}
 	w.secretID = next.currentSecret.ID
+	w.newButton.Show()
 	w.changeButton.Show()
 	w.deleteButton.Show()
+	w.abortEditButton.Hide()
+	w.saveEditButton.Hide()
 	w.stack.SetVisibleChildName("display")
 	w.secretDetailDisplay.display(next.currentSecret)
 }

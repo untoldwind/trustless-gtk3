@@ -84,6 +84,8 @@ func (s *Store) actionUnlock(identity api.Identity, passphrase string) error {
 		state.entryFilter = ""
 		state.entryFilterDeleted = false
 		state.messages = nil
+		state.currentSecret = nil
+		state.currentEdit = false
 		return filterSortAndVisible(state)
 	})
 	return nil
@@ -124,6 +126,7 @@ func (s *Store) actionRefreshEntries() error {
 		state.allEntries = list.Entries
 		state.currentSecret = nil
 		state.selectedEntry = nil
+		state.currentEdit = false
 		return filterSortAndVisible(state)
 	})
 	return nil
@@ -143,6 +146,7 @@ func (s *Store) actionSelectEntry(entryID string) error {
 	s.dispatch(func(state *State) *State {
 		state.selectedEntry = nil
 		state.currentSecret = secret
+		state.currentEdit = false
 		for _, entry := range state.allEntries {
 			if entry.ID == entryID {
 				state.selectedEntry = entry
@@ -171,6 +175,26 @@ func (s *Store) actionMarkDeleted(secretID string) {
 	if err := s.actionRefreshEntries(); err != nil {
 		s.logger.ErrorErr(err)
 	}
+}
+
+func (s *Store) actionEditCurrent() {
+	s.dispatch(func(state *State) *State {
+		if state.currentSecret == nil || state.currentEdit {
+			return nil
+		}
+		state.currentEdit = true
+		return state
+	})
+}
+
+func (s *Store) actionEditAbort() {
+	s.dispatch(func(state *State) *State {
+		if state.currentSecret == nil || !state.currentEdit {
+			return nil
+		}
+		state.currentEdit = false
+		return state
+	})
 }
 
 func filterSortAndVisible(state *State) *State {

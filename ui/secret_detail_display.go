@@ -10,7 +10,8 @@ import (
 )
 
 type secretDetailDisplay struct {
-	*gtk.Grid
+	*gtk.ScrolledWindow
+	grid              *gtk.Grid
 	nameLabel         *gtk.Label
 	typeLabel         *gtk.Label
 	timestampLabel    *gtk.Label
@@ -25,6 +26,10 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 		typeNameMap[secretType.Type] = secretType.Display
 	}
 
+	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create scrolled window")
+	}
 	grid, err := gtk.GridNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create grid")
@@ -47,7 +52,8 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 	}
 
 	w := &secretDetailDisplay{
-		Grid:              grid,
+		ScrolledWindow:    scrolledWindow,
+		grid:              grid,
 		nameLabel:         nameLabel,
 		typeLabel:         typeLabel,
 		timestampLabel:    timestampLabel,
@@ -55,21 +61,24 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 		logger:            logger.WithField("package", "ui").WithField("component", "secretDetailDisplay"),
 		typeNameMap:       typeNameMap,
 	}
-	w.SetOrientation(gtk.ORIENTATION_VERTICAL)
+	w.Add(w.grid)
+
+	w.grid.SetOrientation(gtk.ORIENTATION_VERTICAL)
 
 	w.typeLabel.SetMarginStart(5)
-	w.Attach(w.typeLabel, 0, 0, 1, 1)
+	w.typeLabel.SetMarginEnd(5)
+	w.grid.Attach(w.typeLabel, 0, 0, 1, 1)
 
 	w.nameLabel.SetHExpand(true)
-	w.Attach(w.nameLabel, 1, 0, 1, 1)
+	w.grid.Attach(w.nameLabel, 1, 0, 1, 1)
 
 	w.timestampLabel.SetHExpand(true)
 	w.timestampLabel.SetHAlign(gtk.ALIGN_END)
-	w.Attach(w.timestampLabel, 1, 1, 1, 1)
+	w.grid.Attach(w.timestampLabel, 1, 1, 1, 1)
 
 	w.propertiesDisplay.SetHExpand(true)
 	w.propertiesDisplay.SetVExpand(true)
-	w.Attach(w.propertiesDisplay, 0, 2, 2, 1)
+	w.grid.Attach(w.propertiesDisplay, 0, 2, 2, 1)
 
 	return w, nil
 }
