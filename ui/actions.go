@@ -83,6 +83,7 @@ func (s *Store) actionUnlock(identity api.Identity, passphrase string) error {
 		state.allEntries = list.Entries
 		state.entryFilter = ""
 		state.entryFilterDeleted = false
+		state.messages = nil
 		return filterSortAndVisible(state)
 	})
 	return nil

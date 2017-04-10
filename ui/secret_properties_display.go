@@ -1,13 +1,9 @@
 package ui
 
 import (
-	"html"
-
-	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless-gtk3/gtkextra"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -89,48 +85,17 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 	w.grid.Attach(label, 0, w.rows, 1, 1)
 
 	for _, url := range urls {
-		valueBox, err := gtk.EventBoxNew()
+		urlLabel, err := newUrlLabel(w.logger, url)
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue
 		}
-		valueBox.SetHExpand(true)
-		valueBox.SetHAlign(gtk.ALIGN_START)
-		valueBox.Connect("button-press-event", func() {
-			if err := gtkextra.ShowUri(nil, url); err != nil {
-				w.logger.ErrorErr(err)
-			}
-		})
-		valueBox.Connect("realize", func() {
-			window, err := valueBox.GetWindow()
-			if err != nil {
-				w.logger.ErrorErr(err)
-				return
-			}
-			display, err := gdk.DisplayGetDefault()
-			if err != nil {
-				w.logger.ErrorErr(err)
-				return
-			}
-			cursor, err := gtkextra.CursorNewFromName(display, "pointer")
-			if err != nil {
-				w.logger.ErrorErr(err)
-				return
-			}
-			gtkextra.WindowSetCursor(window, cursor)
-		})
+		urlLabel.SetHExpand(true)
+		urlLabel.SetHAlign(gtk.ALIGN_START)
 
-		w.widgets = append(w.widgets, valueBox)
-		w.grid.Attach(valueBox, 1, w.rows, 1, 1)
+		w.widgets = append(w.widgets, urlLabel)
+		w.grid.Attach(urlLabel, 1, w.rows, 1, 1)
 		w.rows++
-
-		valueLabel, err := gtk.LabelNew(url)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
-		valueLabel.SetMarkup("<span color=\"blue\">" + html.EscapeString(url) + "</span>")
-		valueBox.Add(valueLabel)
 	}
 }
 

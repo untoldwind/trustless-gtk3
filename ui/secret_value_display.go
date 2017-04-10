@@ -6,12 +6,14 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/gtkextra"
 )
 
 type secretValueDisplay struct {
 	*gtk.Box
-	label  *gtk.Label
-	logger logging.Logger
+	label      *gtk.Label
+	handleRefs gtkextra.HandleRefs
+	logger     logging.Logger
 }
 
 func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*secretValueDisplay, error) {
@@ -56,7 +58,7 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 		}
 
 		revealButton.SetTooltipText("Reveal")
-		revealButton.Connect("clicked", func() {
+		w.handleRefs.SafeConnect(revealButton.Object, "clicked", func() {
 			blurredStack.SetVisibleChildName("hide")
 			w.label.SetText(value)
 			w.label.SetSelectable(true)
@@ -69,7 +71,7 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 		}
 
 		hideButton.SetTooltipText("Hide")
-		hideButton.Connect("clicked", func() {
+		w.handleRefs.SafeConnect(hideButton.Object, "clicked", func() {
 			blurredStack.SetVisibleChildName("reveal")
 			w.label.SetText("***************")
 			w.label.SetSelectable(false)
@@ -84,7 +86,7 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 	copyButton.SetTooltipText("Copy")
 	copyButton.SetHAlign(gtk.ALIGN_FILL)
 	copyButton.SetVAlign(gtk.ALIGN_START)
-	copyButton.Connect("clicked", func() {
+	w.handleRefs.SafeConnect(copyButton.Object, "clicked", func() {
 		w.safeCopy(gdk.SELECTION_CLIPBOARD, value)
 		w.safeCopy(gdk.SELECTION_PRIMARY, value)
 	})
@@ -107,4 +109,9 @@ func (w *secretValueDisplay) safeCopy(atom gdk.Atom, value string) {
 			clipboard.SetText("")
 		}
 	})
+}
+
+func (w *secretValueDisplay) Destroy() {
+	w.handleRefs.Cleanup()
+	w.Box.Destroy()
 }
