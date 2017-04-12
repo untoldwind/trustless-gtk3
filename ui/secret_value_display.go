@@ -87,18 +87,27 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 	copyButton.SetHAlign(gtk.ALIGN_FILL)
 	copyButton.SetVAlign(gtk.ALIGN_START)
 	w.handleRefs.SafeConnect(copyButton.Object, "clicked", func() {
-		w.safeCopy(gdk.SELECTION_CLIPBOARD, value)
-		w.safeCopy(gdk.SELECTION_PRIMARY, value)
+		safeCopy(w.logger, value)
 	})
 	w.Add(copyButton)
 
 	return w, nil
 }
 
-func (w *secretValueDisplay) safeCopy(atom gdk.Atom, value string) {
+func (w *secretValueDisplay) Destroy() {
+	w.handleRefs.Cleanup()
+	w.Box.Destroy()
+}
+
+func safeCopy(logger logging.Logger, value string) {
+	safeCopyAtom(logger, gdk.SELECTION_CLIPBOARD, value)
+	safeCopyAtom(logger, gdk.SELECTION_PRIMARY, value)
+}
+
+func safeCopyAtom(logger logging.Logger, atom gdk.Atom, value string) {
 	clipboard, err := gtk.ClipboardGet(atom)
 	if err != nil {
-		w.logger.ErrorErr(err)
+		logger.ErrorErr(err)
 		return
 	}
 	clipboard.SetText(value)
@@ -109,9 +118,4 @@ func (w *secretValueDisplay) safeCopy(atom gdk.Atom, value string) {
 			clipboard.SetText("")
 		}
 	})
-}
-
-func (w *secretValueDisplay) Destroy() {
-	w.handleRefs.Cleanup()
-	w.Box.Destroy()
 }

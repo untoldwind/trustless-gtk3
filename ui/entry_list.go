@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -22,6 +23,7 @@ type entryList struct {
 	*gtk.ScrolledWindow
 	listBox   *gtk.ListBox
 	entryRows []*entryRow
+	menu      *gtk.Menu
 	logger    logging.Logger
 	store     *Store
 }
@@ -37,22 +39,81 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create listBox")
 	}
+
+	menu, err := gtk.MenuNew()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create menu")
+	}
 	w := &entryList{
 		ScrolledWindow: scrolledWindow,
 		listBox:        listBox,
+		menu:           menu,
 		logger:         logger.WithField("package", "ui").WithField("component", "entryList"),
 		store:          store,
 	}
+
+	copyUsernameItem, err := gtk.MenuItemNew()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create menu item")
+	}
+	copyUsernameItem.SetLabel("Copy username")
+	copyUsernameItem.Connect("activate", w.onCopyUsername)
+	copyUsernameItem.Show()
+	w.menu.Append(copyUsernameItem)
+	copyPasswordItem, err := gtk.MenuItemNew()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create menu item")
+	}
+	copyPasswordItem.SetLabel("Copy password")
+	copyPasswordItem.Connect("activate", w.onCopyPassword)
+	copyPasswordItem.Show()
+	w.menu.Append(copyPasswordItem)
 
 	w.Add(w.listBox)
 
 	w.listBox.SetSelectionMode(gtk.SELECTION_SINGLE)
 	w.listBox.ConnectAfter("row-selected", w.onCursorChanged)
 	w.listBox.ConnectAfter("realize", w.onAfterRealize)
+	w.listBox.Connect("button-press-event", w.onButtonPress)
+	w.listBox.Connect("popup-menu", w.onPopupMenu)
 
 	store.addListener(w.onStateChange)
 
 	return w, nil
+}
+
+func (w *entryList) onButtonPress(widget *gtk.ListBox, event *gdk.Event) {
+	buttonEvent := gdk.EventButton{Event: event}
+	if buttonEvent.Button() == 3 {
+		w.menu.PopupAtPointer(event)
+	}
+}
+
+func (w *entryList) onPopupMenu() {
+	w.menu.PopupAtPointer(nil)
+
+}
+
+func (w *entryList) onCopyUsername() {
+	current := w.store.currentState().currentSecret
+	if current == nil {
+		return
+	}
+	username, ok := current.Current.Properties["username"]
+	if ok {
+		safeCopy(w.logger, username)
+	}
+}
+
+func (w *entryList) onCopyPassword() {
+	current := w.store.currentState().currentSecret
+	if current == nil {
+		return
+	}
+	password, ok := current.Current.Properties["password"]
+	if ok {
+		safeCopy(w.logger, password)
+	}
 }
 
 func (w *entryList) onAfterRealize() {
@@ -100,7 +161,6 @@ func (w *entryList) onStateChange(prev, next *State) {
 				entry:      entry,
 			}
 			w.entryRows = append(w.entryRows, row)
-
 			w.listBox.Add(row)
 
 			if row.entry == next.selectedEntry {
