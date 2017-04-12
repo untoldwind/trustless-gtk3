@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"time"
+
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -69,5 +71,23 @@ func (w *secretDetailEdit) setEdit(secret *api.SecretCurrent) {
 	}
 	w.typeLabel.SetText(typeNameDisplay)
 	w.nameEntry.SetText(secret.Current.Name)
-	w.propertiesEdit.setEdit(secret.Current)
+	w.propertiesEdit.setEdit(secret)
+}
+
+func (w *secretDetailEdit) getEdit() (*api.SecretVersion, error) {
+	name, err := w.nameEntry.GetText()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to get name")
+	}
+	urls, properties, err := w.propertiesEdit.getEdit()
+	if err != nil {
+		return nil, err
+	}
+
+	return &api.SecretVersion{
+		Name:       name,
+		Timestamp:  time.Now(),
+		URLs:       urls,
+		Properties: properties,
+	}, nil
 }

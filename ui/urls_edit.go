@@ -50,6 +50,21 @@ func (w *urlsEdit) onAdd() {
 	w.ShowAll()
 }
 
+func (w *urlsEdit) getUrls() []string {
+	var urls []string
+	for _, entry := range w.entries {
+		url, err := entry.GetText()
+		if err != nil {
+			w.logger.ErrorErr(err)
+			continue
+		}
+		if url != "" {
+			urls = append(urls, url)
+		}
+	}
+	return urls
+}
+
 func (w *urlsEdit) setUrls(urls []string) {
 	w.clear()
 

@@ -197,6 +197,18 @@ func (s *Store) actionEditAbort() {
 	})
 }
 
+func (s *Store) actionEditStore(secretID string, version api.SecretVersion) {
+	current := s.currentState().currentSecret
+	if current == nil || current.ID != secretID {
+		s.logger.Warn("Race condition on error. Ignoring action")
+		return
+	}
+	if err := s.secrets.Add(context.Background(), current.ID, current.Type, version); err != nil {
+		s.logger.ErrorErr(err)
+	}
+	s.actionRefreshEntries()
+}
+
 func filterSortAndVisible(state *State) *State {
 	state.visibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
 	for _, entry := range state.allEntries {

@@ -206,7 +206,15 @@ func (w *secretDetail) onDelete() {
 }
 
 func (w *secretDetail) onEditSave() {
-
+	if w.secretID == "" {
+		return
+	}
+	version, err := w.secretDetailEdit.getEdit()
+	if err != nil {
+		w.logger.ErrorErr(err)
+		return
+	}
+	w.store.actionEditStore(w.secretID, *version)
 }
 
 func (w *secretDetail) onStateChanged(prev, next *State) {

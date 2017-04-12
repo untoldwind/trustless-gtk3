@@ -28,7 +28,7 @@ func newUrlLabel(logger logging.Logger, url string) (*urlLabel, error) {
 	}
 
 	w.handleRefs.SafeConnect(w.Object, "button-press-event", func() {
-		if err := gtkextra.ShowUri(nil, url); err != nil {
+		if err := gtkextra.ShowUriOnWindow(&w.Widget, url); err != nil {
 			w.logger.ErrorErr(err)
 		}
 	})
