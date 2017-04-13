@@ -192,6 +192,10 @@ func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to create menu item")
 		}
+		secretType := secretTypeDefinition.Type
+		item.Connect("activate", func() {
+			w.store.actionEditNew(secretType)
+		})
 		item.Show()
 		menu.Append(item)
 	}

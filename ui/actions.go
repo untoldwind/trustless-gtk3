@@ -2,11 +2,15 @@ package ui
 
 import (
 	"context"
+	"crypto/rand"
+	"crypto/sha256"
+	"encoding/hex"
 	"sort"
 	"strings"
 	"time"
 
 	"github.com/gotk3/gotk3/gtk"
+	"github.com/pkg/errors"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -209,6 +213,29 @@ func (s *Store) actionEditStore(secretID string, version api.SecretVersion) {
 	s.actionRefreshEntries()
 }
 
+func (s *Store) actionEditNew(secretType api.SecretType) {
+	s.dispatch(func(state *State) *State {
+		if state.currentEdit {
+			return nil
+		}
+		secretID, err := s.generateID()
+		if err != nil {
+			s.logger.ErrorErr(err)
+			return nil
+		}
+		state.currentSecret = &api.Secret{
+			SecretCurrent: api.SecretCurrent{
+				ID:      secretID,
+				Type:    secretType,
+				Current: &api.SecretVersion{},
+			},
+		}
+		state.currentEdit = true
+		state.selectedEntry = nil
+		return state
+	})
+}
+
 func filterSortAndVisible(state *State) *State {
 	state.visibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
 	for _, entry := range state.allEntries {
@@ -236,4 +263,19 @@ func filterSortAndVisible(state *State) *State {
 	}
 
 	return state
+}
+
+func (s *Store) generateID() (string, error) {
+	jitter := make([]byte, 1024)
+	if _, err := rand.Read(jitter); err != nil {
+		return "", errors.Wrap(err, "Secure random failed")
+	}
+	hash := sha256.New()
+	if _, err := hash.Write(jitter); err != nil {
+		return "", errors.Wrap(err, "Hashing failed")
+	}
+	if _, err := hash.Write([]byte(time.Now().String())); err != nil {
+		return "", errors.Wrap(err, "Hashing failed")
+	}
+	return hex.EncodeToString(hash.Sum(nil)), nil
 }
