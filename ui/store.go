@@ -132,7 +132,7 @@ func (s *Store) checkStatus() {
 			state.locked = true
 			return state
 		} else if state.locked && !status.Locked {
-			list, err := s.secrets.List(context.Background())
+			list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
 			if err != nil {
 				s.logger.ErrorErr(err)
 			} else {

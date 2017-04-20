@@ -22,6 +22,7 @@ const (
 	AddCommand        CommandName = "add"
 	GetCommand        CommandName = "get"
 	EstimateCommand   CommandName = "estimate"
+	GenerateCommand   CommandName = "generate"
 )
 
 type Command struct {
@@ -32,6 +33,7 @@ type Command struct {
 type CommandReply struct {
 	Command CommandName     `json:"command"`
 	Reply   json.RawMessage `json:"response"`
+	Error   string          `json:"error"`
 }
 
 type UnlockArgs struct {
@@ -48,11 +50,6 @@ type AddArgs struct {
 
 type GetArgs struct {
 	ID string `json:"id"`
-}
-
-type EstimateArgs struct {
-	Password string   `json:"password"`
-	Inputs   []string `json:"inputs"`
 }
 
 func readCommand(reader io.Reader) (*Command, error) {
@@ -73,14 +70,22 @@ func readCommand(reader io.Reader) (*Command, error) {
 	return &command, nil
 }
 
-func writeReply(writer io.Writer, command CommandName, reply interface{}) error {
-	replyRaw, err := json.Marshal(reply)
-	if err != nil {
-		return errors.Wrap(err, "Failed to encode reply")
+func writeReply(writer io.Writer, command CommandName, reply interface{}, commandErr error) error {
+	var err error
+	var replyRaw []byte
+
+	if reply != nil {
+		replyRaw, err = json.Marshal(reply)
+		if err != nil {
+			return errors.Wrap(err, "Failed to encode reply")
+		}
 	}
 	commandReply := &CommandReply{
 		Command: command,
 		Reply:   json.RawMessage(replyRaw),
+	}
+	if commandErr != nil {
+		commandReply.Error = commandErr.Error()
 	}
 	message, err := json.Marshal(commandReply)
 	if err != nil {

@@ -77,7 +77,7 @@ func (s *Store) actionUnlock(identity api.Identity, passphrase string) error {
 		s.logger.ErrorErr(err)
 		return err
 	}
-	list, err := s.secrets.List(context.Background())
+	list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
 	if err != nil {
 		s.logger.ErrorErr(err)
 		return err
@@ -121,7 +121,7 @@ func (s *Store) actionRefreshEntries() error {
 	if s.currentState().locked {
 		return nil
 	}
-	list, err := s.secrets.List(context.Background())
+	list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
 	if err != nil {
 		s.logger.ErrorErr(err)
 		return err
