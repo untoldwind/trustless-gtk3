@@ -7,6 +7,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 )
 
 type unlockFrame struct {
@@ -15,10 +16,10 @@ type unlockFrame struct {
 	identitySelect *gtk.ComboBoxText
 	passphrase     *gtk.Entry
 	logger         logging.Logger
-	store          *Store
+	store          *state.Store
 }
 
-func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
+func newUnlockFrame(store *state.Store, logger logging.Logger) (*unlockFrame, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create vbox")
@@ -45,7 +46,7 @@ func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create identiySelect")
 	}
-	for _, identity := range store.currentState().identities {
+	for _, identity := range store.CurrentState().Identities {
 		w.identitySelect.AppendText(fmt.Sprintf("%s <%s>", identity.Name, identity.Email))
 	}
 	w.identitySelect.SetActive(0)
@@ -76,13 +77,13 @@ func newUnlockFrame(store *Store, logger logging.Logger) (*unlockFrame, error) {
 
 func (w *unlockFrame) onUnlock() {
 	idx := w.identitySelect.GetActive()
-	identity := w.store.currentState().identities[idx]
+	identity := w.store.CurrentState().Identities[idx]
 	passphrase, err := w.passphrase.GetText()
 	if err != nil {
 		w.logger.ErrorErr(err)
 	}
 	w.passphrase.SetText("")
-	if err := w.store.actionUnlock(identity, passphrase); err != nil {
-		w.store.actionAddMessage(gtk.MESSAGE_ERROR, "Invalid passphrase", 10*time.Second)
+	if err := w.store.ActionUnlock(identity, passphrase); err != nil {
+		w.store.ActionAddMessage(gtk.MESSAGE_ERROR, "Invalid passphrase", 10*time.Second)
 	}
 }

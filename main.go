@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless-gtk3/ui"
 	"github.com/untoldwind/trustless/secrets/remote"
 )
@@ -23,7 +24,7 @@ func main() {
 	logger := createLogger()
 	secrets := remote.NewRemoteSecrets(logger)
 
-	store, err := ui.NewStore(secrets, logger)
+	store, err := state.NewStore(secrets, logger)
 	if err != nil {
 		logger.ErrorErr(err)
 		return

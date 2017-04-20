@@ -1,4 +1,4 @@
-PKGS= ./ui/... .
+PKGS= ./gtkextra/... ./ui/... ./state/... .
 
 VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)
 

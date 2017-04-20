@@ -4,18 +4,19 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 )
 
 type withMessagePopups struct {
 	*gtk.Overlay
 	messagesBox   *gtk.Box
-	messagePopups map[*Message]*messagePopup
+	messagePopups map[*state.Message]*messagePopup
 
 	logger logging.Logger
-	store  *Store
+	store  *state.Store
 }
 
-func newWithMessagePopups(store *Store, logger logging.Logger) (*withMessagePopups, error) {
+func newWithMessagePopups(store *state.Store, logger logging.Logger) (*withMessagePopups, error) {
 	overlay, err := gtk.OverlayNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create overlay")
@@ -27,7 +28,7 @@ func newWithMessagePopups(store *Store, logger logging.Logger) (*withMessagePopu
 	w := &withMessagePopups{
 		Overlay:       overlay,
 		messagesBox:   messagesBox,
-		messagePopups: map[*Message]*messagePopup{},
+		messagePopups: map[*state.Message]*messagePopup{},
 		logger:        logger.WithField("package", "ui").WithField("component", "withMessagePopup"),
 		store:         store,
 	}
@@ -37,14 +38,14 @@ func newWithMessagePopups(store *Store, logger logging.Logger) (*withMessagePopu
 	messagesBox.SetMarginEnd(5)
 	w.AddOverlay(messagesBox)
 
-	store.addListener(w.onStateChange)
+	store.AddListener(w.onStateChange)
 
 	return w, nil
 }
 
-func (w *withMessagePopups) onStateChange(prev, next *State) {
-	currentMessages := map[*Message]bool{}
-	for _, message := range next.messages {
+func (w *withMessagePopups) onStateChange(prev, next *state.State) {
+	currentMessages := map[*state.Message]bool{}
+	for _, message := range next.Messages {
 		currentMessages[message] = true
 		if _, ok := w.messagePopups[message]; ok {
 			continue

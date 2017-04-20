@@ -4,15 +4,16 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 )
 
 type messagePopup struct {
 	*gtk.InfoBar
 	logger  logging.Logger
-	message *Message
+	message *state.Message
 }
 
-func newMessagePopup(store *Store, message *Message, logger logging.Logger) (*messagePopup, error) {
+func newMessagePopup(store *state.Store, message *state.Message, logger logging.Logger) (*messagePopup, error) {
 	infoBar, err := gtk.InfoBarNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create infoBar")
@@ -37,7 +38,7 @@ func newMessagePopup(store *Store, message *Message, logger logging.Logger) (*me
 	contentArea.Add(messageLabel)
 
 	w.Connect("response", func() {
-		store.actionRemoveMessage(message)
+		store.ActionRemoveMessage(message)
 	})
 
 	return w, nil

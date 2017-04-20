@@ -4,16 +4,17 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
 type sidebar struct {
 	*gtk.Box
 	logger logging.Logger
-	store  *Store
+	store  *state.Store
 }
 
-func newSidebar(store *Store, logger logging.Logger) (*sidebar, error) {
+func newSidebar(store *state.Store, logger logging.Logger) (*sidebar, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create listBox")
@@ -55,15 +56,15 @@ func newSidebar(store *Store, logger logging.Logger) (*sidebar, error) {
 }
 
 func (w *sidebar) onShowAll() {
-	w.store.actionShowAll()
+	w.store.ActionShowAll()
 }
 
 func (w *sidebar) onShowType(secretType api.SecretType) func() {
 	return func() {
-		w.store.actionShowType(secretType)
+		w.store.ActionShowType(secretType)
 	}
 }
 
 func (w *sidebar) onShowTrash() {
-	w.store.actionShowDeleted()
+	w.store.ActionShowDeleted()
 }

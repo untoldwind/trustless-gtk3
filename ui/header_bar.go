@@ -4,16 +4,17 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 )
 
 type headerBar struct {
 	*gtk.Box
 	searchEntry *gtk.SearchEntry
 	logger      logging.Logger
-	store       *Store
+	store       *state.Store
 }
 
-func NewHeaderBar(store *Store, logger logging.Logger) (*headerBar, error) {
+func NewHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 20)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create box")
@@ -63,9 +64,9 @@ func (w *headerBar) onSearchChanged() {
 		w.logger.ErrorErr(err)
 		return
 	}
-	w.store.actionUpdateEntryFilter(filter)
+	w.store.ActionUpdateEntryFilter(filter)
 }
 
 func (w *headerBar) onLock() {
-	w.store.actionLock()
+	w.store.ActionLock()
 }

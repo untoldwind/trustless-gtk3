@@ -1,4 +1,4 @@
-package ui
+package state
 
 import "github.com/untoldwind/trustless/api"
 

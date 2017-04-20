@@ -4,6 +4,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 )
 
 type secretsFrame struct {
@@ -11,7 +12,7 @@ type secretsFrame struct {
 	logger logging.Logger
 }
 
-func newSecretsFrame(store *Store, logger logging.Logger) (*secretsFrame, error) {
+func newSecretsFrame(store *state.Store, logger logging.Logger) (*secretsFrame, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create box")

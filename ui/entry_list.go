@@ -5,6 +5,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -25,10 +26,10 @@ type entryList struct {
 	entryRows []*entryRow
 	menu      *gtk.Menu
 	logger    logging.Logger
-	store     *Store
+	store     *state.Store
 }
 
-func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
+func newEntryList(store *state.Store, logger logging.Logger) (*entryList, error) {
 	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
 	if err != nil {
 		return nil, err
@@ -77,7 +78,7 @@ func newEntryList(store *Store, logger logging.Logger) (*entryList, error) {
 	w.listBox.Connect("button-press-event", w.onButtonPress)
 	w.listBox.Connect("popup-menu", w.onPopupMenu)
 
-	store.addListener(w.onStateChange)
+	store.AddListener(w.onStateChange)
 
 	return w, nil
 }
@@ -95,7 +96,7 @@ func (w *entryList) onPopupMenu() {
 }
 
 func (w *entryList) onCopyUsername() {
-	current := w.store.currentState().currentSecret
+	current := w.store.CurrentState().CurrentSecret
 	if current == nil {
 		return
 	}
@@ -106,7 +107,7 @@ func (w *entryList) onCopyUsername() {
 }
 
 func (w *entryList) onCopyPassword() {
-	current := w.store.currentState().currentSecret
+	current := w.store.CurrentState().CurrentSecret
 	if current == nil {
 		return
 	}
@@ -117,7 +118,7 @@ func (w *entryList) onCopyPassword() {
 }
 
 func (w *entryList) onAfterRealize() {
-	w.store.actionRefreshEntries()
+	w.store.ActionRefreshEntries()
 }
 
 func (w *entryList) onCursorChanged() {
@@ -127,17 +128,17 @@ func (w *entryList) onCursorChanged() {
 	}
 	idx := row.GetIndex()
 	entryRow := w.entryRows[idx]
-	w.store.actionSelectEntry(entryRow.entry.ID)
+	w.store.ActionSelectEntry(entryRow.entry.ID)
 }
 
-func (w *entryList) onStateChange(prev, next *State) {
+func (w *entryList) onStateChange(prev, next *state.State) {
 	var selectedRow *gtk.ListBoxRow
-	for i, entry := range next.visibleEntries {
+	for i, entry := range next.VisibleEntries {
 		if i < len(w.entryRows) {
 			row := w.entryRows[i]
 			row.label.SetText(entry.Name)
 			row.entry = entry
-			if row.entry == next.selectedEntry {
+			if row.entry == next.SelectedEntry {
 				selectedRow = row.ListBoxRow
 			}
 			row.ShowAll()
@@ -163,13 +164,13 @@ func (w *entryList) onStateChange(prev, next *State) {
 			w.entryRows = append(w.entryRows, row)
 			w.listBox.Add(row)
 
-			if row.entry == next.selectedEntry {
+			if row.entry == next.SelectedEntry {
 				selectedRow = row.ListBoxRow
 			}
 		}
 	}
-	if len(next.visibleEntries) < len(w.entryRows) {
-		for _, row := range w.entryRows[len(next.visibleEntries):] {
+	if len(next.VisibleEntries) < len(w.entryRows) {
+		for _, row := range w.entryRows[len(next.VisibleEntries):] {
 			row.Hide()
 		}
 	}

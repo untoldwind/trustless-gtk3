@@ -4,6 +4,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -18,11 +19,11 @@ type secretDetail struct {
 	abortEditButton     *gtk.Button
 	saveEditButton      *gtk.Button
 	logger              logging.Logger
-	store               *Store
+	store               *state.Store
 	secretID            string
 }
 
-func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error) {
+func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create box")
@@ -102,7 +103,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	w.changeButton.SetMarginEnd(2)
 	w.changeButton.SetMarginBottom(2)
 	w.changeButton.SetNoShowAll(true)
-	w.changeButton.Connect("clicked", w.store.actionEditCurrent)
+	w.changeButton.Connect("clicked", w.store.ActionEditCurrent)
 	buttonBox.Add(w.changeButton)
 
 	w.abortEditButton.SetLabel("Abort")
@@ -113,7 +114,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	w.abortEditButton.SetMarginEnd(2)
 	w.abortEditButton.SetMarginBottom(2)
 	w.abortEditButton.SetNoShowAll(true)
-	w.abortEditButton.Connect("clicked", w.store.actionEditAbort)
+	w.abortEditButton.Connect("clicked", w.store.ActionEditAbort)
 	buttonBox.Add(w.abortEditButton)
 
 	deleteConfirm, err := gtk.ButtonNewWithLabel("Confirm")
@@ -176,7 +177,7 @@ func newSecretDetail(store *Store, logger logging.Logger) (*secretDetail, error)
 	}
 	w.stack.AddNamed(w.secretDetailEdit, "edit")
 
-	w.store.addListener(w.onStateChanged)
+	w.store.AddListener(w.onStateChanged)
 
 	return w, nil
 }
@@ -194,7 +195,7 @@ func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
 		}
 		secretType := secretTypeDefinition.Type
 		item.Connect("activate", func() {
-			w.store.actionEditNew(secretType)
+			w.store.ActionEditNew(secretType)
 		})
 		item.Show()
 		menu.Append(item)
@@ -205,7 +206,7 @@ func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
 
 func (w *secretDetail) onDelete() {
 	if w.secretID != "" {
-		w.store.actionMarkDeleted(w.secretID)
+		w.store.ActionMarkDeleted(w.secretID)
 	}
 }
 
@@ -218,11 +219,11 @@ func (w *secretDetail) onEditSave() {
 		w.logger.ErrorErr(err)
 		return
 	}
-	w.store.actionEditStore(w.secretID, *version)
+	w.store.ActionEditStore(w.secretID, *version)
 }
 
-func (w *secretDetail) onStateChanged(prev, next *State) {
-	if next.currentSecret == nil {
+func (w *secretDetail) onStateChanged(prev, next *state.State) {
+	if next.CurrentSecret == nil {
 		w.secretID = ""
 		w.newButton.Show()
 		w.changeButton.Hide()
@@ -231,23 +232,23 @@ func (w *secretDetail) onStateChanged(prev, next *State) {
 		w.saveEditButton.Hide()
 		w.stack.SetVisibleChildName("placeholder")
 		return
-	} else if next.currentEdit {
-		w.secretID = next.currentSecret.ID
+	} else if next.CurrentEdit {
+		w.secretID = next.CurrentSecret.ID
 		w.newButton.Hide()
 		w.changeButton.Hide()
 		w.deleteButton.Hide()
 		w.abortEditButton.Show()
 		w.saveEditButton.Show()
 		w.stack.SetVisibleChildName("edit")
-		w.secretDetailEdit.setEdit(&next.currentSecret.SecretCurrent)
+		w.secretDetailEdit.setEdit(&next.CurrentSecret.SecretCurrent)
 		return
 	}
-	w.secretID = next.currentSecret.ID
+	w.secretID = next.CurrentSecret.ID
 	w.newButton.Show()
 	w.changeButton.Show()
 	w.deleteButton.Show()
 	w.abortEditButton.Hide()
 	w.saveEditButton.Hide()
 	w.stack.SetVisibleChildName("display")
-	w.secretDetailDisplay.display(next.currentSecret)
+	w.secretDetailDisplay.display(next.CurrentSecret)
 }

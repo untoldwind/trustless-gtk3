@@ -1,4 +1,4 @@
-package ui
+package state
 
 import (
 	"context"
@@ -17,14 +17,14 @@ type Message struct {
 }
 
 type State struct {
-	locked             bool
-	identities         []api.Identity
+	Locked             bool
+	Identities         []api.Identity
 	allEntries         []*api.SecretEntry
-	visibleEntries     []*api.SecretEntry
-	messages           []*Message
-	selectedEntry      *api.SecretEntry
-	currentSecret      *api.Secret
-	currentEdit        bool
+	VisibleEntries     []*api.SecretEntry
+	Messages           []*Message
+	SelectedEntry      *api.SecretEntry
+	CurrentSecret      *api.Secret
+	CurrentEdit        bool
 	entryFilter        string
 	entryFilterType    api.SecretType
 	entryFilterDeleted bool
@@ -53,10 +53,10 @@ func NewStore(secrets secrets.Secrets, logger logging.Logger) (*Store, error) {
 		return nil, err
 	}
 	store := &Store{
-		logger: logger.WithField("package", "ui").WithField("component", "uiStore"),
+		logger: logger.WithField("package", "state"),
 		current: State{
-			locked:     status.Locked,
-			identities: identities,
+			Locked:     status.Locked,
+			Identities: identities,
 		},
 		secrets: secrets,
 	}
@@ -66,13 +66,13 @@ func NewStore(secrets secrets.Secrets, logger logging.Logger) (*Store, error) {
 	return store, nil
 }
 
-func (s *Store) currentState() State {
+func (s *Store) CurrentState() State {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	return s.current
 }
 
-func (s *Store) addListener(listener StoreListener) {
+func (s *Store) AddListener(listener StoreListener) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 	s.listeners = append(s.listeners, listener)
@@ -128,17 +128,17 @@ func (s *Store) checkStatus() {
 	}
 
 	s.dispatch(func(state *State) *State {
-		if !state.locked && status.Locked {
-			state.locked = true
+		if !state.Locked && status.Locked {
+			state.Locked = true
 			return state
-		} else if state.locked && !status.Locked {
+		} else if state.Locked && !status.Locked {
 			list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
 			if err != nil {
 				s.logger.ErrorErr(err)
 			} else {
 				state.allEntries = list.Entries
 			}
-			state.locked = false
+			state.Locked = false
 			state.entryFilter = ""
 			return filterSortAndVisible(state)
 		}
