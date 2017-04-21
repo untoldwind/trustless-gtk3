@@ -3,6 +3,7 @@ package state
 import (
 	"context"
 	"sync"
+	"time"
 
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -18,6 +19,7 @@ type Message struct {
 
 type State struct {
 	Locked             bool
+	AutolockAt         *time.Time
 	Identities         []api.Identity
 	allEntries         []*api.SecretEntry
 	VisibleEntries     []*api.SecretEntry
@@ -130,6 +132,7 @@ func (s *Store) checkStatus() {
 	s.dispatch(func(state *State) *State {
 		if !state.Locked && status.Locked {
 			state.Locked = true
+			state.AutolockAt = nil
 			return state
 		} else if state.Locked && !status.Locked {
 			list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
@@ -139,8 +142,12 @@ func (s *Store) checkStatus() {
 				state.allEntries = list.Entries
 			}
 			state.Locked = false
+			state.AutolockAt = status.AutolockAt
 			state.entryFilter = ""
 			return filterSortAndVisible(state)
+		} else if !status.Locked && status.AutolockAt != nil {
+			state.AutolockAt = status.AutolockAt
+			return state
 		}
 		return nil
 	})

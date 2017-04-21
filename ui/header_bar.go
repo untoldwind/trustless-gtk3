@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"time"
+
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
@@ -9,12 +11,13 @@ import (
 
 type headerBar struct {
 	*gtk.Box
-	searchEntry *gtk.SearchEntry
-	logger      logging.Logger
-	store       *state.Store
+	searchEntry   *gtk.SearchEntry
+	logger        logging.Logger
+	store         *state.Store
+	lockTimeLevel *gtk.LevelBar
 }
 
-func NewHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error) {
+func newHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 20)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create box")
@@ -40,20 +43,37 @@ func NewHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error)
 	w.Add(searchEntry)
 	w.SetFocusChild(searchEntry)
 
+	lockBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create lock box")
+	}
+	w.Add(lockBox)
+	lockBox.SetHAlign(gtk.ALIGN_END)
+	lockBox.SetMarginTop(2)
+	lockBox.SetMarginStart(2)
+	lockBox.SetMarginEnd(2)
+	lockBox.SetMarginBottom(2)
+	lockBox.SetHExpand(true)
+
 	lockButton, err := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.ICON_SIZE_BUTTON)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create lock button")
 	}
-	lockButton.SetLabel("Lock")
+	lockButton.SetLabel(" Lock ")
 	lockButton.SetAlwaysShowImage(true)
-	lockButton.SetHAlign(gtk.ALIGN_END)
-	lockButton.SetMarginTop(2)
-	lockButton.SetMarginStart(2)
-	lockButton.SetMarginEnd(2)
-	lockButton.SetMarginBottom(2)
-	lockButton.SetHExpand(true)
 	lockButton.Connect("clicked", w.onLock)
-	w.Add(lockButton)
+	lockBox.Add(lockButton)
+
+	w.lockTimeLevel, err = gtk.LevelBarNew()
+	if err != nil {
+		return nil, errors.Wrap(err, "Failed to create lock level bar")
+	}
+	w.lockTimeLevel.SetMinValue(0)
+	w.lockTimeLevel.SetMaxValue(300)
+	w.lockTimeLevel.SetValue(0)
+	lockBox.Add(w.lockTimeLevel)
+
+	w.store.AddListener(w.onStateChange)
 
 	return w, nil
 }
@@ -69,4 +89,13 @@ func (w *headerBar) onSearchChanged() {
 
 func (w *headerBar) onLock() {
 	w.store.ActionLock()
+}
+
+func (w *headerBar) onStateChange(prev, next *state.State) {
+	if next.AutolockAt == nil || time.Now().After(*next.AutolockAt) {
+		w.lockTimeLevel.SetValue(0)
+	} else {
+		timeout := next.AutolockAt.Sub(time.Now())
+		w.lockTimeLevel.SetValue(float64(timeout / time.Second))
+	}
 }

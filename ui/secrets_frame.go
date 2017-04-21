@@ -33,7 +33,7 @@ func newSecretsFrame(store *state.Store, logger logging.Logger) (*secretsFrame, 
 	}
 	w.Add(right)
 
-	headerBar, err := NewHeaderBar(store, logger)
+	headerBar, err := newHeaderBar(store, logger)
 	if err != nil {
 		return nil, err
 	}
