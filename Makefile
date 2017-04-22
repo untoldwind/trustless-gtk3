@@ -6,7 +6,7 @@ VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)VERSION ?= $(shell date -u +%Y%m%d.%H%
 all: format
 	@mkdir -p bin
 	@echo "--> Running go build ${VERSION}"
-	@go build -v -i -o bin/trustless-gtk3 github.com/untoldwind/trustless-gtk3
+	@go build -ldflags '-s -w' -v -i -o bin/trustless-gtk3 github.com/untoldwind/trustless-gtk3
 
 #format: export GOPATH=${PWD}/../../../..
 format:
@@ -26,7 +26,7 @@ bin.windows64: export PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/lib/pkgconfig
 bin.windows64:
 	@mkdir -p bin
 	@echo "--> Running go build ${VERSION}"
-	@go build -v -o bin/trustless-gtk3-windows-amd64.exe github.com/untoldwind/trustless-gtk3
+	@go build -ldflags '-s -w' -v -o bin/trustless-gtk3-windows-amd64.exe github.com/untoldwind/trustless-gtk3
 
 dist.windows64: dist/windows64/libatk-1.0-0.dll
 dist.windows64: dist/windows64/libbz2-1.dll
