@@ -91,5 +91,5 @@ func (w *secretDetailDisplay) display(secret *api.Secret) {
 	}
 	w.typeLabel.SetText(typeNameDisplay)
 	w.timestampLabel.SetText(secret.Current.Timestamp.String())
-	w.propertiesDisplay.display(secret.Current)
+	w.propertiesDisplay.display(secret.Current, secret.PasswordStrengths)
 }

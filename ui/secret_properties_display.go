@@ -39,12 +39,12 @@ func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay
 	return w, nil
 }
 
-func (w *secretPropertiesDisplay) display(secretVersion *api.SecretVersion) {
+func (w *secretPropertiesDisplay) display(secretVersion *api.SecretVersion, passwordStrengths map[string]*api.PasswordStrength) {
 	w.destroyAllChildren()
 
 	w.renderUrls(secretVersion.URLs)
 
-	knownNames := w.renderProperties(api.SecretProperties, secretVersion.Properties)
+	knownNames := w.renderProperties(api.SecretProperties, secretVersion.Properties, passwordStrengths)
 
 	var unknownPropertyDefs api.SecretPropertyList
 	for name := range secretVersion.Properties {
@@ -58,7 +58,7 @@ func (w *secretPropertiesDisplay) display(secretVersion *api.SecretVersion) {
 	}
 	unknownPropertyDefs.Sort()
 
-	w.renderProperties(unknownPropertyDefs, secretVersion.Properties)
+	w.renderProperties(unknownPropertyDefs, secretVersion.Properties, passwordStrengths)
 
 	w.ShowAll()
 }
@@ -92,7 +92,7 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 	}
 }
 
-func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretPropertyList, properties map[string]string) map[string]bool {
+func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretPropertyList, properties map[string]string, passwordStrengths map[string]*api.PasswordStrength) map[string]bool {
 	renderedNames := map[string]bool{}
 	for _, propertyDef := range propertyDefs {
 		value, ok := properties[propertyDef.Name]
@@ -110,7 +110,7 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 		w.widgets = append(w.widgets, label)
 		w.Attach(label, 0, w.rows, 1, 1)
 
-		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, w.logger)
+		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, passwordStrengths[propertyDef.Name], w.logger)
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue

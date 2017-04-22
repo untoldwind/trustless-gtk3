@@ -1,12 +1,15 @@
 package ui
 
 import (
+	"fmt"
+
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
 	"github.com/untoldwind/trustless-gtk3/gtkextra"
+	"github.com/untoldwind/trustless/api"
 )
 
 type secretValueDisplay struct {
@@ -16,7 +19,7 @@ type secretValueDisplay struct {
 	logger     logging.Logger
 }
 
-func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*secretValueDisplay, error) {
+func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.PasswordStrength, logger logging.Logger) (*secretValueDisplay, error) {
 	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 5)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create box")
@@ -31,6 +34,8 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 		label.SetText(value)
 		label.SetSelectable(true)
 	}
+	label.SetHAlign(gtk.ALIGN_START)
+	label.SetVAlign(gtk.ALIGN_START)
 
 	w := &secretValueDisplay{
 		Box:    box,
@@ -38,10 +43,29 @@ func newSecretValueDisplay(value string, blurred bool, logger logging.Logger) (*
 		logger: logger.WithField("package", "ui").WithField("component", "secretValueDisplay"),
 	}
 
-	w.label.SetHExpand(true)
-	w.label.SetHAlign(gtk.ALIGN_START)
-	w.label.SetVAlign(gtk.ALIGN_START)
-	w.Add(w.label)
+	if passwordStrength != nil {
+		labelBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to create labelBox")
+		}
+		labelBox.SetHExpand(true)
+		labelBox.Add(w.label)
+
+		level, err := gtk.LevelBarNew()
+		if err != nil {
+			return nil, errors.Wrap(err, "Failed to create level")
+		}
+		level.SetMinValue(0)
+		level.SetMaxValue(80)
+		level.SetValue(passwordStrength.Entropy)
+		level.SetTooltipText(fmt.Sprintf("Entropy: %.1f Cracktime: %s", passwordStrength.Entropy, passwordStrength.CrackTimeDisplay))
+		labelBox.Add(level)
+
+		w.Add(labelBox)
+	} else {
+		w.label.SetHExpand(true)
+		w.Add(w.label)
+	}
 
 	if blurred {
 		blurredStack, err := gtk.StackNew()
