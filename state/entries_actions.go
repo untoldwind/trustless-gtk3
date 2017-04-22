@@ -19,7 +19,9 @@ func (s *Store) ActionRefreshEntries() error {
 	if s.CurrentState().Locked {
 		return nil
 	}
-	list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
+	list, err := s.secrets.List(context.Background(), api.SecretListFilter{
+		Deleted: true,
+	})
 	if err != nil {
 		s.logger.ErrorErr(err)
 		return err

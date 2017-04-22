@@ -14,7 +14,9 @@ func (s *Store) ActionUnlock(identity api.Identity, passphrase string) error {
 		s.logger.ErrorErr(err)
 		return err
 	}
-	list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
+	list, err := s.secrets.List(context.Background(), api.SecretListFilter{
+		Deleted: true,
+	})
 	if err != nil {
 		s.logger.ErrorErr(err)
 		return err
