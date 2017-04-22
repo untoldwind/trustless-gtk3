@@ -19,7 +19,7 @@ type Message struct {
 
 type State struct {
 	Locked             bool
-	AutolockAt         *time.Time
+	AutoLockIn         time.Duration
 	Identities         []api.Identity
 	allEntries         []*api.SecretEntry
 	VisibleEntries     []*api.SecretEntry
@@ -132,7 +132,7 @@ func (s *Store) checkStatus() {
 	s.dispatch(func(state *State) *State {
 		if !state.Locked && status.Locked {
 			state.Locked = true
-			state.AutolockAt = nil
+			state.AutoLockIn = 0
 			return state
 		} else if state.Locked && !status.Locked {
 			list, err := s.secrets.List(context.Background(), api.SecretListFilter{})
@@ -142,12 +142,19 @@ func (s *Store) checkStatus() {
 				state.allEntries = list.Entries
 			}
 			state.Locked = false
-			state.AutolockAt = status.AutolockAt
+			if status.AutolockAt != nil {
+				state.AutoLockIn = status.AutolockAt.Sub(time.Now())
+			} else {
+				state.AutoLockIn = 0
+			}
 			state.entryFilter = ""
 			return filterSortAndVisible(state)
 		} else if !status.Locked && status.AutolockAt != nil {
-			state.AutolockAt = status.AutolockAt
-			return state
+			autolockIn := status.AutolockAt.Sub(time.Now())
+			if state.AutoLockIn != autolockIn {
+				state.AutoLockIn = autolockIn
+				return state
+			}
 		}
 		return nil
 	})

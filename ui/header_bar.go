@@ -92,10 +92,11 @@ func (w *headerBar) onLock() {
 }
 
 func (w *headerBar) onStateChange(prev, next *state.State) {
-	if next.AutolockAt == nil || time.Now().After(*next.AutolockAt) {
-		w.lockTimeLevel.SetValue(0)
-	} else {
-		timeout := next.AutolockAt.Sub(time.Now())
-		w.lockTimeLevel.SetValue(float64(timeout / time.Second))
+	level := float64(next.AutoLockIn / time.Second)
+	if level < 0 {
+		level = 0
+	} else if level > 300 {
+		level = 300
 	}
+	w.lockTimeLevel.SetValue(level)
 }

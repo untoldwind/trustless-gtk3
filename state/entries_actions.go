@@ -2,7 +2,6 @@ package state
 
 import (
 	"context"
-	"sort"
 	"strings"
 	"time"
 
@@ -94,7 +93,6 @@ func filterSortAndVisible(state *State) *State {
 		}
 		state.VisibleEntries = append(state.VisibleEntries, entry)
 	}
-	sort.Sort(entryStoreNameAsc(state.VisibleEntries))
 
 	if state.SelectedEntry != nil {
 		for _, entry := range state.VisibleEntries {

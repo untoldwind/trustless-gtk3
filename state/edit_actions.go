@@ -27,6 +27,7 @@ func (s *Store) ActionEditAbort() {
 			return nil
 		}
 		state.CurrentEdit = false
+		state.CurrentSecret = nil
 		return state
 	})
 }

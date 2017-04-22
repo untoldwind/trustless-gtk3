@@ -21,6 +21,7 @@ type secretDetail struct {
 	logger              logging.Logger
 	store               *state.Store
 	secretID            string
+	editing             bool
 }
 
 func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, error) {
@@ -223,7 +224,7 @@ func (w *secretDetail) onEditSave() {
 }
 
 func (w *secretDetail) onStateChanged(prev, next *state.State) {
-	if next.CurrentSecret == nil {
+	if next.CurrentSecret == nil && w.secretID != "" {
 		w.secretID = ""
 		w.newButton.Show()
 		w.changeButton.Hide()
@@ -231,9 +232,9 @@ func (w *secretDetail) onStateChanged(prev, next *state.State) {
 		w.abortEditButton.Hide()
 		w.saveEditButton.Hide()
 		w.stack.SetVisibleChildName("placeholder")
-		return
-	} else if next.CurrentEdit {
+	} else if next.CurrentSecret != nil && next.CurrentEdit && (next.CurrentSecret.ID != w.secretID || !w.editing) {
 		w.secretID = next.CurrentSecret.ID
+		w.editing = true
 		w.newButton.Hide()
 		w.changeButton.Hide()
 		w.deleteButton.Hide()
@@ -241,14 +242,15 @@ func (w *secretDetail) onStateChanged(prev, next *state.State) {
 		w.saveEditButton.Show()
 		w.stack.SetVisibleChildName("edit")
 		w.secretDetailEdit.setEdit(&next.CurrentSecret.SecretCurrent)
-		return
+	} else if next.CurrentSecret != nil && !next.CurrentEdit && (next.CurrentSecret.ID != w.secretID || w.editing) {
+		w.secretID = next.CurrentSecret.ID
+		w.editing = false
+		w.newButton.Show()
+		w.changeButton.Show()
+		w.deleteButton.Show()
+		w.abortEditButton.Hide()
+		w.saveEditButton.Hide()
+		w.stack.SetVisibleChildName("display")
+		w.secretDetailDisplay.display(next.CurrentSecret)
 	}
-	w.secretID = next.CurrentSecret.ID
-	w.newButton.Show()
-	w.changeButton.Show()
-	w.deleteButton.Show()
-	w.abortEditButton.Hide()
-	w.saveEditButton.Hide()
-	w.stack.SetVisibleChildName("display")
-	w.secretDetailDisplay.display(next.CurrentSecret)
 }
