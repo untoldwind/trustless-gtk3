@@ -6,6 +6,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -18,7 +19,7 @@ type secretDetailEdit struct {
 	typeNameMap    map[api.SecretType]string
 }
 
-func newSecretDetailEdit(logger logging.Logger) (*secretDetailEdit, error) {
+func newSecretDetailEdit(store *state.Store, logger logging.Logger) (*secretDetailEdit, error) {
 	typeNameMap := map[api.SecretType]string{}
 	for _, secretType := range api.SecretTypes {
 		typeNameMap[secretType.Type] = secretType.Display
@@ -36,7 +37,7 @@ func newSecretDetailEdit(logger logging.Logger) (*secretDetailEdit, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create nameEntry")
 	}
-	propertiesEdit, err := newSecretPropertiesEdit(logger)
+	propertiesEdit, err := newSecretPropertiesEdit(store, logger)
 	if err != nil {
 		return nil, err
 	}

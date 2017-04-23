@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"fmt"
-
 	"github.com/gotk3/gotk3/gdk"
 	"github.com/gotk3/gotk3/glib"
 	"github.com/gotk3/gotk3/gtk"
@@ -51,14 +49,10 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 		labelBox.SetHExpand(true)
 		labelBox.Add(w.label)
 
-		level, err := gtk.LevelBarNew()
+		level, err := newPasswordStrengthBar(passwordStrength)
 		if err != nil {
 			return nil, errors.Wrap(err, "Failed to create level")
 		}
-		level.SetMinValue(0)
-		level.SetMaxValue(80)
-		level.SetValue(passwordStrength.Entropy)
-		level.SetTooltipText(fmt.Sprintf("Entropy: %.1f Cracktime: %s", passwordStrength.Entropy, passwordStrength.CrackTimeDisplay))
 		labelBox.Add(level)
 
 		w.Add(labelBox)

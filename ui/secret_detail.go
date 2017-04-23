@@ -172,7 +172,7 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 	}
 	w.stack.AddNamed(w.secretDetailDisplay, "display")
 
-	w.secretDetailEdit, err = newSecretDetailEdit(logger)
+	w.secretDetailEdit, err = newSecretDetailEdit(store, logger)
 	if err != nil {
 		return nil, err
 	}

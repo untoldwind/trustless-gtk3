@@ -4,6 +4,7 @@ import (
 	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
 	"github.com/pkg/errors"
+	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -12,13 +13,14 @@ type propertyValueGetter func() (string, error)
 type secretPropertiesEdit struct {
 	*gtk.Grid
 	logger          logging.Logger
+	store           *state.Store
 	widgets         []destroyable
 	urlsEdit        *urlsEdit
 	propertyGetters map[string]propertyValueGetter
 	rows            int
 }
 
-func newSecretPropertiesEdit(logger logging.Logger) (*secretPropertiesEdit, error) {
+func newSecretPropertiesEdit(store *state.Store, logger logging.Logger) (*secretPropertiesEdit, error) {
 	grid, err := gtk.GridNew()
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create grid")
@@ -26,6 +28,7 @@ func newSecretPropertiesEdit(logger logging.Logger) (*secretPropertiesEdit, erro
 	w := &secretPropertiesEdit{
 		Grid:   grid,
 		logger: logger.WithField("package", "ui").WithField("component", "secretPropertiesEdit"),
+		store:  store,
 	}
 	w.SetRowSpacing(2)
 	w.SetColumnSpacing(2)
@@ -150,6 +153,21 @@ func (w *secretPropertiesEdit) renderProperties(propertyDefs api.SecretPropertyL
 				end := buffer.GetEndIter()
 				return buffer.GetText(start, end, true)
 			}
+		} else if propertyDef.Blurred {
+			passwordEdit, err := newSecretPasswordEdit(w.store, w.logger)
+			if err != nil {
+				w.logger.ErrorErr(err)
+				continue
+			}
+			passwordEdit.SetHExpand(true)
+			w.widgets = append(w.widgets, passwordEdit)
+			w.Attach(passwordEdit, 1, w.rows, 1, 1)
+
+			value, ok := properties[propertyDef.Name]
+			if ok {
+				passwordEdit.setText(value)
+			}
+			w.propertyGetters[propertyDef.Name] = passwordEdit.getText
 		} else {
 			valueEdit, err := gtk.EntryNew()
 			if err != nil {
