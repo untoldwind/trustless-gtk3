@@ -13,11 +13,13 @@ type secretDetailDisplay struct {
 	*gtk.ScrolledWindow
 	grid              *gtk.Grid
 	nameLabel         *gtk.Label
+	versionSelect     *secretVersionSelect
 	typeLabel         *gtk.Label
-	timestampLabel    *gtk.Label
 	propertiesDisplay *secretPropertiesDisplay
 	logger            logging.Logger
 	typeNameMap       map[api.SecretType]string
+	displayedSecret   *api.Secret
+	displayedVersion  *api.SecretVersion
 }
 
 func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error) {
@@ -42,9 +44,9 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to create typeLabel")
 	}
-	timestampLabel, err := gtk.LabelNew("")
+	versionSelect, err := newSecretVersionSelect(logger)
 	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create timestampLabel")
+		return nil, err
 	}
 	propertiesDisplay, err := newSecretPropertiesDisplay(logger)
 	if err != nil {
@@ -56,8 +58,8 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 		grid:              grid,
 		nameLabel:         nameLabel,
 		typeLabel:         typeLabel,
-		timestampLabel:    timestampLabel,
 		propertiesDisplay: propertiesDisplay,
+		versionSelect:     versionSelect,
 		logger:            logger.WithField("package", "ui").WithField("component", "secretDetailDisplay"),
 		typeNameMap:       typeNameMap,
 	}
@@ -72,9 +74,9 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 	w.nameLabel.SetHExpand(true)
 	w.grid.Attach(w.nameLabel, 1, 0, 1, 1)
 
-	w.timestampLabel.SetHExpand(true)
-	w.timestampLabel.SetHAlign(gtk.ALIGN_END)
-	w.grid.Attach(w.timestampLabel, 1, 1, 1, 1)
+	w.versionSelect.SetHAlign(gtk.ALIGN_END)
+	w.versionSelect.onSelect(w.onSelectVersion)
+	w.grid.Attach(w.versionSelect, 0, 1, 2, 1)
 
 	w.propertiesDisplay.SetHExpand(true)
 	w.propertiesDisplay.SetVExpand(true)
@@ -84,12 +86,30 @@ func newSecretDetailDisplay(logger logging.Logger) (*secretDetailDisplay, error)
 }
 
 func (w *secretDetailDisplay) display(secret *api.Secret) {
-	w.nameLabel.SetMarkup("<span font=\"20\">" + html.EscapeString(secret.Current.Name) + "</span>")
 	typeNameDisplay, ok := w.typeNameMap[secret.Type]
 	if !ok {
 		typeNameDisplay = string(secret.Type)
 	}
 	w.typeLabel.SetText(typeNameDisplay)
-	w.timestampLabel.SetText(secret.Current.Timestamp.String())
-	w.propertiesDisplay.display(secret.Current, secret.PasswordStrengths)
+	w.displayedSecret = secret
+	w.displayedVersion = secret.Versions[0]
+	w.versionSelect.setVersions(secret.Versions)
+	w.updateView()
+}
+
+func (w *secretDetailDisplay) onSelectVersion(version *api.SecretVersion) {
+	if version == w.displayedVersion {
+		return
+	}
+	w.displayedVersion = version
+	w.updateView()
+}
+
+func (w *secretDetailDisplay) updateView() {
+	w.nameLabel.SetMarkup("<span font=\"20\">" + html.EscapeString(w.displayedVersion.Name) + "</span>")
+	if w.displayedSecret.Versions[0] == w.displayedVersion {
+		w.propertiesDisplay.display(w.displayedVersion, w.displayedSecret.PasswordStrengths)
+	} else {
+		w.propertiesDisplay.display(w.displayedVersion, nil)
+	}
 }
