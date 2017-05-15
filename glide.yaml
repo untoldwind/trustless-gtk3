@@ -1,5 +1,6 @@
 package: github.com/untoldwind/trustless-gtk3
 import:
+- package: gopkg.in/urfave/cli.v2
 - package: github.com/untoldwind/trustless
   subpackages:
   - api
@@ -7,3 +8,5 @@ import:
 - package: github.com/gotk3/gotk3
   subpackages:
   - gtk
+- package: github.com/shibukawa/configdir
+- package: github.com/nbutton23/zxcvbn-go

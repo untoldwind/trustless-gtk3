@@ -1,5 +1,5 @@
-hash: 1e8e4fe7fc93198cce502556196972100c9c7b096e4b5484c7b70f8daa70657b
-updated: 2017-05-15T07:29:59.484765161+02:00
+hash: 9665aa038470f20d71a69d673710922bbbfe712ec67831fbee0bec621ead6031
+updated: 2017-05-15T08:34:34.536371484+02:00
 imports:
 - name: github.com/gotk3/gotk3
   version: 96d4110a3a1eafa37cac10bf67156106011b3966
@@ -15,20 +15,56 @@ imports:
   - logging
   - rest
   - routing
+- name: github.com/nbutton23/zxcvbn-go
+  version: a22cb81b2ecdde8b68e9ffb8824731cbf88e1de4
+  subpackages:
+  - adjacency
+  - data
+  - entropy
+  - frequency
+  - match
+  - matching
+  - scoring
+  - utils/math
 - name: github.com/pkg/errors
   version: 645ef00459ed84a119197bfb8d8205042c6df63d
+- name: github.com/shibukawa/configdir
+  version: e180dbdc8da04c4fa04272e875ce64949f38bd3e
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/untoldwind/trustless
-  version: b5cd44447d7c8590f67561e86e9454954f50e302
+  version: 6ebc2f53bdabbd7cc667c2badb5c240956722be7
   subpackages:
   - api
+  - config
+  - daemon
   - secrets
+  - secrets/generate
+  - secrets/pgp
   - secrets/remote
+  - store
+  - store/localdir
+  - store/model
+- name: golang.org/x/crypto
+  version: 6217826bd297ae6dcdc999a87063952c037bc67e
+  repo: https://github.com/untoldwind/crypto
+  subpackages:
+  - cast5
+  - openpgp
+  - openpgp/armor
+  - openpgp/elgamal
+  - openpgp/errors
+  - openpgp/packet
+  - openpgp/s2k
+  - pbkdf2
 - name: golang.org/x/sys
   version: e48874b42435b4347fc52bdee0424a52abc974d7
   subpackages:
   - unix
 - name: gopkg.in/natefinch/npipe.v2
   version: c1b8fa8bdccecb0b8db834ee0b92fdbcfa606dd6
+- name: gopkg.in/urfave/cli.v2
+  version: 61c3eb6ba1da1df17cd50f1456a9252d92bf5edd
+- name: gopkg.in/yaml.v2
+  version: a3f3340b5840cee44f372bddb5880fcbc419b46a
 testImports: []
