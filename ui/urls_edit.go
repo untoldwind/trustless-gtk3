@@ -8,7 +8,7 @@ import (
 
 type urlsEdit struct {
 	*gtk.Box
-	entries   []*gtk.Entry
+	entries   []*urlsEditBox
 	addButton *gtk.Button
 	logger    logging.Logger
 }
@@ -37,7 +37,7 @@ func newUrlsEdit(logger logging.Logger) (*urlsEdit, error) {
 }
 
 func (w *urlsEdit) onAdd() {
-	entry, err := gtk.EntryNew()
+	entry, err := newUrlsEditBox(w.logger, w.onRemove(len(w.entries)))
 	if err != nil {
 		w.logger.ErrorErr(err)
 		return
@@ -50,10 +50,16 @@ func (w *urlsEdit) onAdd() {
 	w.ShowAll()
 }
 
+func (w *urlsEdit) onRemove(idx int) func() {
+	return func() {
+		w.entries[idx].remove()
+	}
+}
+
 func (w *urlsEdit) getUrls() []string {
 	var urls []string
 	for _, entry := range w.entries {
-		url, err := entry.GetText()
+		url, err := entry.getText()
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue
@@ -69,13 +75,13 @@ func (w *urlsEdit) setUrls(urls []string) {
 	w.clear()
 
 	w.Remove(w.addButton)
-	for _, url := range urls {
-		entry, err := gtk.EntryNew()
+	for idx, url := range urls {
+		entry, err := newUrlsEditBox(w.logger, w.onRemove(idx))
 		if err != nil {
 			w.logger.ErrorErr(err)
 			continue
 		}
-		entry.SetText(url)
+		entry.setText(url)
 		w.entries = append(w.entries, entry)
 
 		w.Add(entry)
