@@ -1,5 +1,5 @@
 hash: 1e8e4fe7fc93198cce502556196972100c9c7b096e4b5484c7b70f8daa70657b
-updated: 2017-04-22T18:32:29.762434099+02:00
+updated: 2017-05-15T07:29:59.484765161+02:00
 imports:
 - name: github.com/gotk3/gotk3
   version: 96d4110a3a1eafa37cac10bf67156106011b3966
@@ -20,13 +20,13 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/untoldwind/trustless
-  version: 5a5c99b05d63a8ede88979716ac46c6e32a8f6fe
+  version: b5cd44447d7c8590f67561e86e9454954f50e302
   subpackages:
   - api
   - secrets
   - secrets/remote
 - name: golang.org/x/sys
-  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  version: e48874b42435b4347fc52bdee0424a52abc974d7
   subpackages:
   - unix
 - name: gopkg.in/natefinch/npipe.v2
