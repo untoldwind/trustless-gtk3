@@ -1,6 +1,6 @@
 PKGS= ./gtkextra/... ./ui/... ./state/... .
 
-VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)
+VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)
 
 #all: export GOPATH=${PWD}/../../../..
 all: format
@@ -82,6 +82,7 @@ dist.windows64: dist/windows64/zlib1.dll
 	@cd dist/windows64; zip -r ../../bin/trustless-gtk3-windows.zip *
 
 dist/windows64/%.dll: /usr/x86_64-w64-mingw32/bin/%.dll
+	@mkdir -p dist/windows64
 	@cp $< $@
 
 glide.install:
@@ -90,7 +91,7 @@ glide.install:
 	@go build -v -o bin/glide github.com/Masterminds/glide
 	@bin/glide install -v
 
-release: cross
+release:
 	@echo "--> github-release"
 	@go get github.com/c4milo/github-release
 	@go build -v -o bin/github-release github.com/c4milo/github-release

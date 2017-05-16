@@ -21,6 +21,7 @@ var GlobalFlags = &struct {
 	LogFormat  string
 	LogFile    string
 	ConfigFile string
+	NoDaemon   bool
 }{}
 
 func createLogger() logging.Logger {
@@ -68,6 +69,11 @@ func main() {
 				Value:       config.DefaultConfigFile(),
 				Destination: &GlobalFlags.ConfigFile,
 			},
+			&cli.BoolFlag{
+				Name:        "no-daemon",
+				Usage:       "Never start embedded daemon",
+				Destination: &GlobalFlags.NoDaemon,
+			},
 		},
 		Action: run,
 	}
@@ -81,7 +87,7 @@ func run(ctx *cli.Context) error {
 	logger := createLogger()
 	var secrets secrets.Secrets
 
-	if remote.RemoteAvailable(logger) {
+	if GlobalFlags.NoDaemon || remote.RemoteAvailable(logger) {
 		logger.Info("Use remote store")
 		secrets = remote.NewRemoteSecrets(logger)
 	} else {
