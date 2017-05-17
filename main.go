@@ -87,7 +87,7 @@ func run(ctx *cli.Context) error {
 	logger := createLogger()
 	var secrets secrets.Secrets
 
-	if GlobalFlags.NoDaemon || remote.RemoteAvailable(logger) {
+	if remote.RemoteAvailable(logger) {
 		logger.Info("Use remote store")
 		secrets = remote.NewRemoteSecrets(logger)
 	} else {
@@ -103,12 +103,14 @@ func run(ctx *cli.Context) error {
 		}
 		defer secrets.Lock(context.Background())
 
-		daemon := daemon.NewDaemon(secrets, logger)
+		if !GlobalFlags.NoDaemon {
+			daemon := daemon.NewDaemon(secrets, logger)
 
-		if err := daemon.Start(); err != nil {
-			return err
+			if err := daemon.Start(); err != nil {
+				return err
+			}
+			defer daemon.Stop()
 		}
-		defer daemon.Stop()
 	}
 
 	store, err := state.NewStore(secrets, logger)

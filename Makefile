@@ -38,7 +38,7 @@ bin.windows64: export PKG_CONFIG_PATH=/usr/x86_64-w64-mingw32/lib/pkgconfig
 bin.windows64:
 	@mkdir -p bin
 	@echo "--> Running go build ${VERSION}"
-	@go build -ldflags '-s -w' -v -o bin/trustless-gtk3-windows-amd64.exe github.com/untoldwind/trustless-gtk3
+	@go build -ldflags '-s -w -H=windowsgui' -v -o bin/trustless-gtk3-windows-amd64.exe github.com/untoldwind/trustless-gtk3
 
 dist.windows64: bin.windows64
 dist.windows64: dist/windows64/libatk-1.0-0.dll

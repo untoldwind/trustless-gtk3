@@ -35,7 +35,7 @@ func NewMainWindow(store *state.Store, logger logging.Logger) (*MainWindow, erro
 
 	w.SetTitle("Trustless")
 	w.Connect("destroy", gtk.MainQuit)
-	w.SetDefaultSize(400, 400)
+	w.SetDefaultSize(800, 600)
 
 	unlockFrame, err := newUnlockFrame(store, logger)
 	if err != nil {
