@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -13,51 +12,31 @@ type secretsFrame struct {
 }
 
 func newSecretsFrame(store *state.Store, logger logging.Logger) (*secretsFrame, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 0)
 	w := &secretsFrame{
 		Box:    box,
 		logger: logger.WithField("package", "ui").WithField("component", "secretsFrame"),
 	}
-	sidebar, err := newSidebar(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	sidebar := newSidebar(store, logger)
 	w.Add(sidebar)
 
-	right, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
+	right := gtk.BoxNew(gtk.OrientationVertical, 0)
 	w.Add(right)
 
-	headerBar, err := newHeaderBar(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	headerBar := newHeaderBar(store, logger)
 	right.Add(headerBar)
 	right.SetFocusChild(headerBar)
 	w.SetFocusChild(right)
 
-	paned, err := gtk.PanedNew(gtk.ORIENTATION_HORIZONTAL)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create paned")
-	}
+	paned := gtk.PanedNew(gtk.OrientationHorizontal)
 	paned.SetVExpand(true)
 	right.Add(paned)
 
-	entryList, err := newEntryList(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	entryList := newEntryList(store, logger)
 	paned.Add1(entryList)
 
-	secretDetail, err := newSecretDetail(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	secretDetail := newSecretDetail(store, logger)
+
 	paned.Add2(secretDetail)
 	paned.ConnectAfter("realize", func() {
 		paned.SetPosition(300)

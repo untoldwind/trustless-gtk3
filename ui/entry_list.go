@@ -1,10 +1,9 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gdk"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
@@ -29,22 +28,12 @@ type entryList struct {
 	store     *state.Store
 }
 
-func newEntryList(store *state.Store, logger logging.Logger) (*entryList, error) {
-	scrolledWindow, err := gtk.ScrolledWindowNew(nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	scrolledWindow.SetPolicy(gtk.POLICY_AUTOMATIC, gtk.POLICY_AUTOMATIC)
+func newEntryList(store *state.Store, logger logging.Logger) *entryList {
+	scrolledWindow := gtk.ScrolledWindowNew(nil, nil)
+	scrolledWindow.SetPolicy(gtk.PolicyTypeAutomatic, gtk.PolicyTypeAutomatic)
+	listBox := gtk.ListBoxNew()
+	menu := gtk.MenuNew()
 
-	listBox, err := gtk.ListBoxNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create listBox")
-	}
-
-	menu, err := gtk.MenuNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create menu")
-	}
 	w := &entryList{
 		ScrolledWindow: scrolledWindow,
 		listBox:        listBox,
@@ -53,18 +42,12 @@ func newEntryList(store *state.Store, logger logging.Logger) (*entryList, error)
 		store:          store,
 	}
 
-	copyUsernameItem, err := gtk.MenuItemNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create menu item")
-	}
+	copyUsernameItem := gtk.MenuItemNew()
 	copyUsernameItem.SetLabel("Copy username")
 	copyUsernameItem.Connect("activate", w.onCopyUsername)
 	copyUsernameItem.Show()
 	w.menu.Append(copyUsernameItem)
-	copyPasswordItem, err := gtk.MenuItemNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create menu item")
-	}
+	copyPasswordItem := gtk.MenuItemNew()
 	copyPasswordItem.SetLabel("Copy password")
 	copyPasswordItem.Connect("activate", w.onCopyPassword)
 	copyPasswordItem.Show()
@@ -72,7 +55,7 @@ func newEntryList(store *state.Store, logger logging.Logger) (*entryList, error)
 
 	w.Add(w.listBox)
 
-	w.listBox.SetSelectionMode(gtk.SELECTION_SINGLE)
+	w.listBox.SetSelectionMode(gtk.SelectionModeSingle)
 	w.listBox.ConnectAfter("row-selected", w.onCursorChanged)
 	w.listBox.ConnectAfter("realize", w.onAfterRealize)
 	w.listBox.Connect("button-press-event", w.onButtonPress)
@@ -80,10 +63,14 @@ func newEntryList(store *state.Store, logger logging.Logger) (*entryList, error)
 
 	store.AddListener(w.onStateChange)
 
-	return w, nil
+	return w
 }
 
-func (w *entryList) onButtonPress(widget *gtk.ListBox, event *gdk.Event) {
+func (w *entryList) onButtonPress() {
+	event := gtk.CurrentEvent()
+	if event == nil {
+		return
+	}
 	buttonEvent := gdk.EventButton{Event: event}
 	if buttonEvent.Button() == 3 {
 		w.menu.PopupAtPointer(event)
@@ -143,17 +130,9 @@ func (w *entryList) onStateChange(prev, next *state.State) {
 			}
 			row.ShowAll()
 		} else {
-			listBoxRow, err := gtk.ListBoxRowNew()
-			if err != nil {
-				w.logger.ErrorErr(err)
-				continue
-			}
-			label, err := gtk.LabelNew(entry.Name)
-			if err != nil {
-				w.logger.ErrorErr(err)
-				continue
-			}
-			label.SetHAlign(gtk.ALIGN_START)
+			listBoxRow := gtk.ListBoxRowNew()
+			label := gtk.LabelNew(entry.Name)
+			label.SetHAlign(gtk.AlignStart)
 			listBoxRow.Add(label)
 			listBoxRow.ShowAll()
 			row := &entryRow{

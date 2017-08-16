@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -15,18 +14,12 @@ type MainWindow struct {
 }
 
 func NewMainWindow(store *state.Store, logger logging.Logger) (*MainWindow, error) {
-	window, err := gtk.WindowNew(gtk.WINDOW_TOPLEVEL)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create toplevel window")
-	}
+	window := gtk.WindowNew(gtk.WindowToplevel)
 	withMessagePopups, err := newWithMessagePopups(store, logger)
 	if err != nil {
 		return nil, err
 	}
-	stack, err := gtk.StackNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create stack")
-	}
+	stack := gtk.StackNew()
 	w := &MainWindow{
 		Window: window,
 		stack:  stack,
@@ -37,10 +30,7 @@ func NewMainWindow(store *state.Store, logger logging.Logger) (*MainWindow, erro
 	w.Connect("destroy", gtk.MainQuit)
 	w.SetDefaultSize(800, 600)
 
-	unlockFrame, err := newUnlockFrame(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	unlockFrame := newUnlockFrame(store, logger)
 
 	secretsFrame, err := newSecretsFrame(store, logger)
 	if err != nil {

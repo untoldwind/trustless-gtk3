@@ -3,8 +3,7 @@ package ui
 import (
 	"fmt"
 
-	"github.com/gotk3/gotk3/gtk"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -12,11 +11,8 @@ type passwordStrengthBar struct {
 	*gtk.LevelBar
 }
 
-func newPasswordStrengthBar(passwordStrength *api.PasswordStrength) (*passwordStrengthBar, error) {
-	levelBar, err := gtk.LevelBarNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create levelBar")
-	}
+func newPasswordStrengthBar(passwordStrength *api.PasswordStrength) *passwordStrengthBar {
+	levelBar := gtk.LevelBarNew()
 
 	w := &passwordStrengthBar{
 		LevelBar: levelBar,
@@ -28,7 +24,7 @@ func newPasswordStrengthBar(passwordStrength *api.PasswordStrength) (*passwordSt
 		w.setPasswordStrength(passwordStrength)
 	}
 
-	return w, nil
+	return w
 }
 
 func (w *passwordStrengthBar) setPasswordStrength(passwordStrength *api.PasswordStrength) {

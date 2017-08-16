@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 )
 
 type urlsEdit struct {
@@ -13,15 +12,9 @@ type urlsEdit struct {
 	logger    logging.Logger
 }
 
-func newUrlsEdit(logger logging.Logger) (*urlsEdit, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 2)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
-	addButton, err := gtk.ButtonNewFromIconName("list-add-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create addButton")
-	}
+func newUrlsEdit(logger logging.Logger) *urlsEdit {
+	box := gtk.BoxNew(gtk.OrientationVertical, 2)
+	addButton := gtk.ButtonNewFromIconName("list-add-symbolic", gtk.IconSizeButton)
 
 	w := &urlsEdit{
 		Box:       box,
@@ -29,11 +22,11 @@ func newUrlsEdit(logger logging.Logger) (*urlsEdit, error) {
 		logger:    logger.WithField("package", "ui").WithField("component", "urlsEdit"),
 	}
 
-	w.addButton.SetHAlign(gtk.ALIGN_START)
+	w.addButton.SetHAlign(gtk.AlignStart)
 	w.addButton.Connect("clicked", w.onAdd)
 	w.Add(w.addButton)
 
-	return w, nil
+	return w
 }
 
 func (w *urlsEdit) onAdd() {
@@ -59,11 +52,7 @@ func (w *urlsEdit) onRemove(idx int) func() {
 func (w *urlsEdit) getUrls() []string {
 	var urls []string
 	for _, entry := range w.entries {
-		url, err := entry.getText()
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
+		url := entry.getText()
 		if url != "" {
 			urls = append(urls, url)
 		}

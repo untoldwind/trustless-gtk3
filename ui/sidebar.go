@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
@@ -17,11 +16,8 @@ type sidebar struct {
 	showTrash *sidebarLabel
 }
 
-func newSidebar(store *state.Store, logger logging.Logger) (*sidebar, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create listBox")
-	}
+func newSidebar(store *state.Store, logger logging.Logger) *sidebar {
+	box := gtk.BoxNew(gtk.OrientationVertical, 0)
 	w := &sidebar{
 		Box:       box,
 		logger:    logger.WithField("package", "ui").WithField("component", "sidebar"),
@@ -29,36 +25,26 @@ func newSidebar(store *state.Store, logger logging.Logger) (*sidebar, error) {
 		showTypes: map[api.SecretType]*sidebarLabel{},
 	}
 
-	w.showAll, err = newSideBarLabel(logger, "All")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create showAll")
-	}
+	w.showAll = newSideBarLabel(logger, "All")
 	w.showAll.onClicked(w.onShowAll)
 	w.showAll.setActive(true)
 	w.Add(w.showAll)
 
 	for _, secretType := range api.SecretTypes {
-		showType, err := newSideBarLabel(logger, secretType.Display)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
+		showType := newSideBarLabel(logger, secretType.Display)
 		showType.onClicked(w.onShowType(secretType.Type))
 		w.Add(showType)
 		w.showTypes[secretType.Type] = showType
 	}
 
-	w.showTrash, err = newSideBarLabel(logger, "Trash")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create showTrash")
-	}
+	w.showTrash = newSideBarLabel(logger, "Trash")
 	w.showTrash.onClicked(w.onShowTrash)
-	w.showTrash.SetVAlign(gtk.ALIGN_END)
+	w.showTrash.SetVAlign(gtk.AlignEnd)
 	w.showTrash.SetVExpand(true)
 
 	w.Add(w.showTrash)
 
-	return w, nil
+	return w
 }
 
 func (w *sidebar) onShowAll() {

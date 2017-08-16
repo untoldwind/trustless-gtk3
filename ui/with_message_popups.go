@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -17,14 +16,8 @@ type withMessagePopups struct {
 }
 
 func newWithMessagePopups(store *state.Store, logger logging.Logger) (*withMessagePopups, error) {
-	overlay, err := gtk.OverlayNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create overlay")
-	}
-	messagesBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 5)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create messagesBox")
-	}
+	overlay := gtk.OverlayNew()
+	messagesBox := gtk.BoxNew(gtk.OrientationVertical, 5)
 	w := &withMessagePopups{
 		Overlay:       overlay,
 		messagesBox:   messagesBox,
@@ -32,7 +25,7 @@ func newWithMessagePopups(store *state.Store, logger logging.Logger) (*withMessa
 		logger:        logger.WithField("package", "ui").WithField("component", "withMessagePopup"),
 		store:         store,
 	}
-	messagesBox.SetVAlign(gtk.ALIGN_START)
+	messagesBox.SetVAlign(gtk.AlignStart)
 	messagesBox.SetMarginTop(5)
 	messagesBox.SetMarginStart(5)
 	messagesBox.SetMarginEnd(5)
@@ -50,11 +43,7 @@ func (w *withMessagePopups) onStateChange(prev, next *state.State) {
 		if _, ok := w.messagePopups[message]; ok {
 			continue
 		}
-		popup, err := newMessagePopup(w.store, message, w.logger)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
+		popup := newMessagePopup(w.store, message, w.logger)
 		w.messagePopups[message] = popup
 		w.messagesBox.Add(popup)
 		popup.ShowAll()

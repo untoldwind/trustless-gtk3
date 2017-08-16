@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -19,11 +18,8 @@ type unlockFrame struct {
 	store          *state.Store
 }
 
-func newUnlockFrame(store *state.Store, logger logging.Logger) (*unlockFrame, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create vbox")
-	}
+func newUnlockFrame(store *state.Store, logger logging.Logger) *unlockFrame {
+	box := gtk.BoxNew(gtk.OrientationVertical, 0)
 
 	w := &unlockFrame{
 		Box:    box,
@@ -31,59 +27,44 @@ func newUnlockFrame(store *state.Store, logger logging.Logger) (*unlockFrame, er
 		store:  store,
 	}
 
-	centerBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 5)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create centerbox")
-	}
+	centerBox := gtk.BoxNew(gtk.OrientationVertical, 5)
 	centerBox.SetVExpand(true)
-	centerBox.SetVAlign(gtk.ALIGN_CENTER)
+	centerBox.SetVAlign(gtk.AlignCenter)
 	centerBox.SetMarginStart(50)
 	centerBox.SetMarginEnd(50)
 	w.Add(centerBox)
 	w.SetFocusChild(centerBox)
 
-	w.identitySelect, err = gtk.ComboBoxTextNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create identiySelect")
-	}
+	w.identitySelect = gtk.ComboBoxTextNew()
 	for _, identity := range store.CurrentState().Identities {
 		w.identitySelect.AppendText(fmt.Sprintf("%s <%s>", identity.Name, identity.Email))
 	}
 	w.identitySelect.SetActive(0)
 	centerBox.Add(w.identitySelect)
 
-	w.passphrase, err = gtk.EntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create passphrase entry")
-	}
+	w.passphrase = gtk.EntryNew()
 	w.passphrase.SetVisibility(false)
-	w.passphrase.SetInputPurpose(gtk.INPUT_PURPOSE_PASSWORD)
+	w.passphrase.SetInputPurpose(gtk.InputPurposePassword)
 	w.passphrase.Connect("activate", w.onUnlock)
 	centerBox.Add(w.passphrase)
 	centerBox.SetFocusChild(w.passphrase)
 
-	unlockButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create unlock button")
-	}
+	unlockButton := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.IconSizeButton)
 	unlockButton.SetLabel("Unlock")
 	unlockButton.Connect("clicked", w.onUnlock)
-	unlockButton.SetHAlign(gtk.ALIGN_CENTER)
+	unlockButton.SetHAlign(gtk.AlignCenter)
 	unlockButton.SetAlwaysShowImage(true)
 	centerBox.Add(unlockButton)
 
-	return w, nil
+	return w
 }
 
 func (w *unlockFrame) onUnlock() {
 	idx := w.identitySelect.GetActive()
 	identity := w.store.CurrentState().Identities[idx]
-	passphrase, err := w.passphrase.GetText()
-	if err != nil {
-		w.logger.ErrorErr(err)
-	}
+	passphrase := w.passphrase.GetText()
 	w.passphrase.SetText("")
 	if err := w.store.ActionUnlock(identity, passphrase); err != nil {
-		w.store.ActionAddMessage(gtk.MESSAGE_ERROR, "Invalid passphrase", 10*time.Second)
+		w.store.ActionAddMessage(gtk.MessageTypeError, "Invalid passphrase", 10*time.Second)
 	}
 }

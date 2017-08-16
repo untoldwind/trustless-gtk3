@@ -1,23 +1,19 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 )
 
 type secretDetailPlaceholder struct {
 	*gtk.Label
 }
 
-func newSecretDetailPlaceholder() (*secretDetailPlaceholder, error) {
-	label, err := gtk.LabelNew("Select entry")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create label")
-	}
+func newSecretDetailPlaceholder() *secretDetailPlaceholder {
+	label := gtk.LabelNew("Select entry")
 
 	w := &secretDetailPlaceholder{
 		Label: label,
 	}
 
-	return w, nil
+	return w
 }

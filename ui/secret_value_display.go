@@ -1,39 +1,30 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless-gtk3/gtkextra"
+	"github.com/untoldwind/amintk/gdk"
+	"github.com/untoldwind/amintk/glib"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/api"
 )
 
 type secretValueDisplay struct {
 	*gtk.Box
-	label      *gtk.Label
-	handleRefs gtkextra.HandleRefs
-	logger     logging.Logger
+	label  *gtk.Label
+	logger logging.Logger
 }
 
-func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.PasswordStrength, logger logging.Logger) (*secretValueDisplay, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 5)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
-	label, err := gtk.LabelNew("")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create label")
-	}
+func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.PasswordStrength, logger logging.Logger) *secretValueDisplay {
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 5)
+	label := gtk.LabelNew("")
 	if blurred {
 		label.SetText("***************")
 	} else {
 		label.SetText(value)
 		label.SetSelectable(true)
 	}
-	label.SetHAlign(gtk.ALIGN_START)
-	label.SetVAlign(gtk.ALIGN_START)
+	label.SetHAlign(gtk.AlignStart)
+	label.SetVAlign(gtk.AlignStart)
 
 	w := &secretValueDisplay{
 		Box:    box,
@@ -42,17 +33,11 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 	}
 
 	if passwordStrength != nil {
-		labelBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create labelBox")
-		}
+		labelBox := gtk.BoxNew(gtk.OrientationVertical, 0)
 		labelBox.SetHExpand(true)
 		labelBox.Add(w.label)
 
-		level, err := newPasswordStrengthBar(passwordStrength)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create level")
-		}
+		level := newPasswordStrengthBar(passwordStrength)
 		labelBox.Add(level)
 
 		w.Add(labelBox)
@@ -62,34 +47,25 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 	}
 
 	if blurred {
-		blurredStack, err := gtk.StackNew()
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create bluredStack")
-		}
-		blurredStack.SetHAlign(gtk.ALIGN_FILL)
-		blurredStack.SetVAlign(gtk.ALIGN_START)
+		blurredStack := gtk.StackNew()
+		blurredStack.SetHAlign(gtk.AlignFill)
+		blurredStack.SetVAlign(gtk.AlignStart)
 		w.Add(blurredStack)
 
-		revealButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create revealButton")
-		}
+		revealButton := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.IconSizeButton)
 
 		revealButton.SetTooltipText("Reveal")
-		w.handleRefs.SafeConnect(revealButton.Object, "clicked", func() {
+		revealButton.Connect("clicked", func() {
 			blurredStack.SetVisibleChildName("hide")
 			w.label.SetText(value)
 			w.label.SetSelectable(true)
 		})
 		blurredStack.AddNamed(revealButton, "reveal")
 
-		hideButton, err := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.ICON_SIZE_BUTTON)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create hideButton")
-		}
+		hideButton := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.IconSizeButton)
 
 		hideButton.SetTooltipText("Hide")
-		w.handleRefs.SafeConnect(hideButton.Object, "clicked", func() {
+		hideButton.Connect("clicked", func() {
 			blurredStack.SetVisibleChildName("reveal")
 			w.label.SetText("***************")
 			w.label.SetSelectable(false)
@@ -97,42 +73,30 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 		blurredStack.AddNamed(hideButton, "hide")
 	}
 
-	copyButton, err := gtk.ButtonNewFromIconName("edit-copy-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create copyButtons")
-	}
+	copyButton := gtk.ButtonNewFromIconName("edit-copy-symbolic", gtk.IconSizeButton)
 	copyButton.SetTooltipText("Copy")
-	copyButton.SetHAlign(gtk.ALIGN_FILL)
-	copyButton.SetVAlign(gtk.ALIGN_START)
-	w.handleRefs.SafeConnect(copyButton.Object, "clicked", func() {
+	copyButton.SetHAlign(gtk.AlignFill)
+	copyButton.SetVAlign(gtk.AlignStart)
+	copyButton.Connect("clicked", func() {
 		safeCopy(w.logger, value)
 	})
 	w.Add(copyButton)
 
-	return w, nil
-}
-
-func (w *secretValueDisplay) Destroy() {
-	w.handleRefs.Cleanup()
-	w.Box.Destroy()
+	return w
 }
 
 func safeCopy(logger logging.Logger, value string) {
-	safeCopyAtom(logger, gdk.SELECTION_CLIPBOARD, value)
-	safeCopyAtom(logger, gdk.SELECTION_PRIMARY, value)
+	safeCopyAtom(logger, gdk.AtomSelectionClipboard, value)
+	safeCopyAtom(logger, gdk.AtomSelectionPrimary, value)
 }
 
 func safeCopyAtom(logger logging.Logger, atom gdk.Atom, value string) {
-	clipboard, err := gtk.ClipboardGet(atom)
-	if err != nil {
-		logger.ErrorErr(err)
-		return
-	}
+	clipboard := gtk.ClipboardGet(atom)
 	clipboard.SetText(value)
 
 	glib.TimeoutAdd(20000, func() {
-		text, err := clipboard.WaitForText()
-		if err != nil && text == value {
+		text := clipboard.WaitForText()
+		if text == value {
 			clipboard.SetText("")
 		}
 	})

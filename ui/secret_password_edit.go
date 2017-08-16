@@ -1,10 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless-gtk3/gtkextra"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -14,37 +12,20 @@ type secretPasswordEdit struct {
 	store               *state.Store
 	entry               *gtk.Entry
 	passwordStrengthBar *passwordStrengthBar
-	handleRefs          gtkextra.HandleRefs
 	generateForm        *passwordGenerateForm
 	generateButton      *gtk.MenuButton
 }
 
-func newSecretPasswordEdit(store *state.Store, logger logging.Logger) (*secretPasswordEdit, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
-
-	entry, err := gtk.EntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create entry")
-	}
+func newSecretPasswordEdit(store *state.Store, logger logging.Logger) *secretPasswordEdit {
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 0)
+	entry := gtk.EntryNew()
 	entry.SetVisibility(false)
-	entry.SetInputPurpose(gtk.INPUT_PURPOSE_PASSWORD)
+	entry.SetInputPurpose(gtk.InputPurposePassword)
 
-	passwordStrengthBar, err := newPasswordStrengthBar(nil)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create passwordStrengthBar")
-	}
+	passwordStrengthBar := newPasswordStrengthBar(nil)
 
-	generateForm, err := newPasswordGenerateForm(store, logger)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create generateForm")
-	}
-	generateButton, err := gtk.MenuButtonNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create generateButton")
-	}
+	generateForm := newPasswordGenerateForm(store, logger)
+	generateButton := gtk.MenuButtonNew()
 
 	w := &secretPasswordEdit{
 		Box:                 box,
@@ -56,43 +37,31 @@ func newSecretPasswordEdit(store *state.Store, logger logging.Logger) (*secretPa
 		generateButton:      generateButton,
 	}
 
-	entryBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create entryBox")
-	}
+	entryBox := gtk.BoxNew(gtk.OrientationVertical, 0)
 	entryBox.SetHExpand(true)
 	entryBox.Add(entry)
 	entryBox.Add(passwordStrengthBar)
 	w.Add(entryBox)
-	w.handleRefs.SafeConnect(entry.Object, "changed", w.onEntryChange)
+	entry.Connect("changed", w.onEntryChange)
 
-	revealButton, err := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create revealButton")
-	}
+	revealButton := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.IconSizeButton)
 	revealButton.SetTooltipText("Reveal")
 	w.Add(revealButton)
-	w.handleRefs.SafeConnect(revealButton.Object, "clicked", w.onToggleReveal)
+	revealButton.Connect("clicked", w.onToggleReveal)
 
-	generatePopover, err := gtk.PopoverNew(w.generateButton)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create confirm popover")
-	}
+	generatePopover := gtk.PopoverNew(w.generateButton)
 	w.generateForm.ShowAll()
 	generatePopover.Add(w.generateForm)
 	generatePopover.SetBorderWidth(5)
 
-	generateImage, err := gtk.ImageNewFromIconName("applications-system-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create generateImage")
-	}
+	generateImage := gtk.ImageNewFromIconName("applications-system-symbolic", gtk.IconSizeButton)
 	w.generateButton.SetImage(generateImage)
 	w.generateButton.SetTooltipText("Generate")
 	w.generateButton.SetPopover(generatePopover)
 	w.Add(w.generateButton)
 	w.generateForm.connectTake(w.onTakeGenerated)
 
-	return w, nil
+	return w
 }
 
 func (w *secretPasswordEdit) onTakeGenerated(password string) {
@@ -105,11 +74,7 @@ func (w *secretPasswordEdit) onToggleReveal() {
 }
 
 func (w *secretPasswordEdit) onEntryChange() {
-	password, err := w.entry.GetText()
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
+	password := w.entry.GetText()
 	passwordStrength, err := w.store.EstimatePassword(password)
 	if err != nil {
 		w.logger.ErrorErr(err)
@@ -118,16 +83,10 @@ func (w *secretPasswordEdit) onEntryChange() {
 	w.passwordStrengthBar.setPasswordStrength(passwordStrength)
 }
 
-func (w *secretPasswordEdit) Destroy() {
-	w.handleRefs.Cleanup()
-	w.generateForm.Destroy()
-	w.Box.Destroy()
-}
-
 func (w *secretPasswordEdit) setText(value string) {
 	w.entry.SetText(value)
 }
 
-func (w *secretPasswordEdit) getText() (string, error) {
+func (w *secretPasswordEdit) getText() string {
 	return w.entry.GetText()
 }

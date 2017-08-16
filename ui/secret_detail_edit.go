@@ -3,9 +3,8 @@ package ui
 import (
 	"time"
 
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
@@ -19,28 +18,16 @@ type secretDetailEdit struct {
 	typeNameMap    map[api.SecretType]string
 }
 
-func newSecretDetailEdit(store *state.Store, logger logging.Logger) (*secretDetailEdit, error) {
+func newSecretDetailEdit(store *state.Store, logger logging.Logger) *secretDetailEdit {
 	typeNameMap := map[api.SecretType]string{}
 	for _, secretType := range api.SecretTypes {
 		typeNameMap[secretType.Type] = secretType.Display
 	}
 
-	grid, err := gtk.GridNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create grid")
-	}
-	typeLabel, err := gtk.LabelNew("")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create typeLabel")
-	}
-	nameEntry, err := gtk.EntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create nameEntry")
-	}
-	propertiesEdit, err := newSecretPropertiesEdit(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	grid := gtk.GridNew()
+	typeLabel := gtk.LabelNew("")
+	nameEntry := gtk.EntryNew()
+	propertiesEdit := newSecretPropertiesEdit(store, logger)
 
 	w := &secretDetailEdit{
 		Grid:           grid,
@@ -62,7 +49,7 @@ func newSecretDetailEdit(store *state.Store, logger logging.Logger) (*secretDeta
 	w.propertiesEdit.SetVExpand(true)
 	w.Attach(w.propertiesEdit, 0, 2, 2, 1)
 
-	return w, nil
+	return w
 }
 
 func (w *secretDetailEdit) setEdit(secret *api.SecretCurrent) {
@@ -76,10 +63,7 @@ func (w *secretDetailEdit) setEdit(secret *api.SecretCurrent) {
 }
 
 func (w *secretDetailEdit) getEdit() (*api.SecretVersion, error) {
-	name, err := w.nameEntry.GetText()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to get name")
-	}
+	name := w.nameEntry.GetText()
 	urls, properties, err := w.propertiesEdit.getEdit()
 	if err != nil {
 		return nil, err

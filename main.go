@@ -4,8 +4,8 @@ import (
 	"context"
 	"os"
 
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless-gtk3/ui"
 	"github.com/untoldwind/trustless/config"

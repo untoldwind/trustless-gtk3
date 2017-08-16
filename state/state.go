@@ -5,9 +5,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gotk3/gotk3/glib"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
+	"github.com/untoldwind/amintk/glib"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/api"
 	"github.com/untoldwind/trustless/secrets"
 )

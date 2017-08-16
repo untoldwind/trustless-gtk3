@@ -1,30 +1,22 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gdk"
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless-gtk3/gtkextra"
+	"github.com/untoldwind/amintk/gdk"
+	"github.com/untoldwind/amintk/gtk"
 )
 
 type sidebarLabel struct {
 	*gtk.EventBox
 	logger       logging.Logger
-	handleRefs   gtkextra.HandleRefs
 	label        *gtk.Label
 	styleContext *gtk.StyleContext
 }
 
-func newSideBarLabel(logger logging.Logger, text string) (*sidebarLabel, error) {
-	eventBox, err := gtk.EventBoxNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create eventBox")
-	}
-	provider, err := gtk.CssProviderNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create provider")
-	}
+func newSideBarLabel(logger logging.Logger, text string) *sidebarLabel {
+	eventBox := gtk.EventBoxNew()
+	provider := gtk.CssProviderNew()
+
 	provider.LoadFromData(`
 label {
   padding: 10px;
@@ -35,15 +27,9 @@ label:active {
   background-color: blue;
   padding: 10px;
 }`)
-	label, err := gtk.LabelNew(text)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create label")
-	}
-	styleContext, err := label.GetStyleContext()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to get styleContext")
-	}
-	styleContext.AddProvider(provider, gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
+	label := gtk.LabelNew(text)
+	styleContext := label.GetStyleContext()
+	styleContext.AddProvider(provider, gtk.StyleProviderPriorityApplication)
 
 	w := &sidebarLabel{
 		EventBox:     eventBox,
@@ -52,43 +38,26 @@ label:active {
 		styleContext: styleContext,
 	}
 
-	w.handleRefs.SafeConnect(w.Object, "realize", func() {
-		window, err := w.GetWindow()
-		if err != nil {
-			w.logger.ErrorErr(err)
-			return
-		}
-		display, err := gdk.DisplayGetDefault()
-		if err != nil {
-			w.logger.ErrorErr(err)
-			return
-		}
-		cursor, err := gtkextra.CursorNewFromName(display, "pointer")
-		if err != nil {
-			w.logger.ErrorErr(err)
-			return
-		}
-		gtkextra.WindowSetCursor(window, cursor)
+	w.Connect("realize", func() {
+		window := w.GetWindow()
+		display := gdk.DisplayGetDefault()
+		cursor := display.CursorFromName("pointer")
+		window.SetCursor(cursor)
 	})
 
 	w.Add(w.label)
 
-	return w, nil
+	return w
 }
 
 func (w *sidebarLabel) setActive(active bool) {
 	if active {
-		w.styleContext.SetState(gtk.STATE_FLAG_ACTIVE)
+		w.styleContext.SetState(gtk.StateFlagsActive)
 	} else {
-		w.styleContext.SetState(gtk.STATE_FLAG_NORMAL)
+		w.styleContext.SetState(gtk.StateFlagsNormal)
 	}
 }
 
 func (w *sidebarLabel) onClicked(handler func()) {
-	w.handleRefs.SafeConnect(w.Object, "button-press-event", handler)
-}
-
-func (w *sidebarLabel) Destroy() {
-	w.handleRefs.Cleanup()
-	w.EventBox.Destroy()
+	w.Connect("button-press-event", handler)
 }

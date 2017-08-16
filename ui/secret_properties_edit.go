@@ -1,14 +1,13 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
 
-type propertyValueGetter func() (string, error)
+type propertyValueGetter func() string
 
 type secretPropertiesEdit struct {
 	*gtk.Grid
@@ -20,11 +19,8 @@ type secretPropertiesEdit struct {
 	rows            int
 }
 
-func newSecretPropertiesEdit(store *state.Store, logger logging.Logger) (*secretPropertiesEdit, error) {
-	grid, err := gtk.GridNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create grid")
-	}
+func newSecretPropertiesEdit(store *state.Store, logger logging.Logger) *secretPropertiesEdit {
+	grid := gtk.GridNew()
 	w := &secretPropertiesEdit{
 		Grid:   grid,
 		logger: logger.WithField("package", "ui").WithField("component", "secretPropertiesEdit"),
@@ -33,7 +29,7 @@ func newSecretPropertiesEdit(store *state.Store, logger logging.Logger) (*secret
 	w.SetRowSpacing(2)
 	w.SetColumnSpacing(2)
 
-	return w, nil
+	return w
 }
 
 func (w *secretPropertiesEdit) setEdit(secret *api.SecretCurrent) {
@@ -76,32 +72,20 @@ func (w *secretPropertiesEdit) getEdit() ([]string, map[string]string, error) {
 	}
 	properties := map[string]string{}
 	for name, getter := range w.propertyGetters {
-		value, err := getter()
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "Failed to get value for: %s", name)
-		}
-		properties[name] = value
+		properties[name] = getter()
 	}
 
 	return urls, properties, nil
 }
 
 func (w *secretPropertiesEdit) renderUrls(urls []string) {
-	label, err := gtk.LabelNew("URLs")
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
-	label.SetHAlign(gtk.ALIGN_START)
-	label.SetVAlign(gtk.ALIGN_START)
+	label := gtk.LabelNew("URLs")
+	label.SetHAlign(gtk.AlignStart)
+	label.SetVAlign(gtk.AlignStart)
 	w.widgets = append(w.widgets, label)
 	w.Attach(label, 0, w.rows, 1, 1)
 
-	w.urlsEdit, err = newUrlsEdit(w.logger)
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
+	w.urlsEdit = newUrlsEdit(w.logger)
 	w.urlsEdit.SetHExpand(true)
 	w.urlsEdit.setUrls(urls)
 	w.widgets = append(w.widgets, w.urlsEdit)
@@ -114,22 +98,14 @@ func (w *secretPropertiesEdit) renderProperties(propertyDefs api.SecretPropertyL
 	renderedNames := map[string]bool{}
 	for _, propertyDef := range propertyDefs {
 		renderedNames[propertyDef.Name] = true
-		label, err := gtk.LabelNew(propertyDef.Display)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
-		label.SetHAlign(gtk.ALIGN_START)
-		label.SetVAlign(gtk.ALIGN_START)
+		label := gtk.LabelNew(propertyDef.Display)
+		label.SetHAlign(gtk.AlignStart)
+		label.SetVAlign(gtk.AlignStart)
 		w.widgets = append(w.widgets, label)
 		w.Attach(label, 0, w.rows, 1, 1)
 
 		if propertyDef.MultiLine {
-			valueEdit, err := gtk.TextViewNew()
-			if err != nil {
-				w.logger.ErrorErr(err)
-				continue
-			}
+			valueEdit := gtk.TextViewNew()
 			valueEdit.SetHExpand(true)
 			valueEdit.SetVExpand(true)
 			w.widgets = append(w.widgets, valueEdit)
@@ -137,28 +113,17 @@ func (w *secretPropertiesEdit) renderProperties(propertyDefs api.SecretPropertyL
 
 			value, ok := properties[propertyDef.Name]
 			if ok {
-				buffer, err := valueEdit.GetBuffer()
-				if err != nil {
-					w.logger.ErrorErr(err)
-					continue
-				}
+				buffer := valueEdit.GetBuffer()
 				buffer.SetText(value)
 			}
-			w.propertyGetters[propertyDef.Name] = func() (string, error) {
-				buffer, err := valueEdit.GetBuffer()
-				if err != nil {
-					return "", err
-				}
+			w.propertyGetters[propertyDef.Name] = func() string {
+				buffer := valueEdit.GetBuffer()
 				start := buffer.GetStartIter()
 				end := buffer.GetEndIter()
 				return buffer.GetText(start, end, true)
 			}
 		} else if propertyDef.Blurred {
-			passwordEdit, err := newSecretPasswordEdit(w.store, w.logger)
-			if err != nil {
-				w.logger.ErrorErr(err)
-				continue
-			}
+			passwordEdit := newSecretPasswordEdit(w.store, w.logger)
 			passwordEdit.SetHExpand(true)
 			w.widgets = append(w.widgets, passwordEdit)
 			w.Attach(passwordEdit, 1, w.rows, 1, 1)
@@ -169,11 +134,7 @@ func (w *secretPropertiesEdit) renderProperties(propertyDefs api.SecretPropertyL
 			}
 			w.propertyGetters[propertyDef.Name] = passwordEdit.getText
 		} else {
-			valueEdit, err := gtk.EntryNew()
-			if err != nil {
-				w.logger.ErrorErr(err)
-				continue
-			}
+			valueEdit := gtk.EntryNew()
 			valueEdit.SetHExpand(true)
 			w.widgets = append(w.widgets, valueEdit)
 			w.Attach(valueEdit, 1, w.rows, 1, 1)

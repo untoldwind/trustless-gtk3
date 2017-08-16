@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 	"github.com/untoldwind/trustless/api"
 )
@@ -24,35 +23,14 @@ type secretDetail struct {
 	editing             bool
 }
 
-func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
-	stack, err := gtk.StackNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create stack")
-	}
-	newButton, err := gtk.MenuButtonNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create new button")
-	}
-	changeButton, err := gtk.ButtonNewFromIconName("document-open-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create changeButton")
-	}
-	deleteButton, err := gtk.MenuButtonNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create deleteButton")
-	}
-	abortEditButton, err := gtk.ButtonNewFromIconName("window-close-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create abourtEditButton")
-	}
-	saveEditButton, err := gtk.ButtonNewFromIconName("document-save-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create saveEditButton")
-	}
+func newSecretDetail(store *state.Store, logger logging.Logger) *secretDetail {
+	box := gtk.BoxNew(gtk.OrientationVertical, 0)
+	stack := gtk.StackNew()
+	newButton := gtk.MenuButtonNew()
+	changeButton := gtk.ButtonNewFromIconName("document-open-symbolic", gtk.IconSizeButton)
+	deleteButton := gtk.MenuButtonNew()
+	abortEditButton := gtk.ButtonNewFromIconName("window-close-symbolic", gtk.IconSizeButton)
+	saveEditButton := gtk.ButtonNewFromIconName("document-save-symbolic", gtk.IconSizeButton)
 
 	w := &secretDetail{
 		Box:             box,
@@ -70,35 +48,26 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 	w.stack.SetVExpand(true)
 	w.Add(w.stack)
 
-	buttonBox, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 5)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create button box")
-	}
+	buttonBox := gtk.BoxNew(gtk.OrientationHorizontal, 5)
 	w.Add(buttonBox)
 
-	newImage, err := gtk.ImageNewFromIconName("list-add-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create newImage")
-	}
+	newImage := gtk.ImageNewFromIconName("list-add-symbolic", gtk.IconSizeButton)
 
-	newMenu, err := w.newSecretMenu()
-	if err != nil {
-		return nil, err
-	}
+	newMenu := w.newSecretMenu()
 
 	w.newButton.SetImage(newImage)
-	w.newButton.SetHAlign(gtk.ALIGN_START)
+	w.newButton.SetHAlign(gtk.AlignStart)
 	w.newButton.SetMarginTop(2)
 	w.newButton.SetMarginStart(2)
 	w.newButton.SetMarginEnd(2)
 	w.newButton.SetMarginBottom(2)
 	w.newButton.SetPopup(newMenu)
-	w.newButton.SetDirection(gtk.ARROW_UP)
+	w.newButton.SetDirection(gtk.ArrowTypeUp)
 	buttonBox.Add(w.newButton)
 
 	w.changeButton.SetLabel("Change")
 	w.changeButton.SetAlwaysShowImage(true)
-	w.changeButton.SetHAlign(gtk.ALIGN_START)
+	w.changeButton.SetHAlign(gtk.AlignStart)
 	w.changeButton.SetMarginTop(2)
 	w.changeButton.SetMarginStart(2)
 	w.changeButton.SetMarginEnd(2)
@@ -109,7 +78,7 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 
 	w.abortEditButton.SetLabel("Abort")
 	w.abortEditButton.SetAlwaysShowImage(true)
-	w.abortEditButton.SetHAlign(gtk.ALIGN_START)
+	w.abortEditButton.SetHAlign(gtk.AlignStart)
 	w.abortEditButton.SetMarginTop(2)
 	w.abortEditButton.SetMarginStart(2)
 	w.abortEditButton.SetMarginEnd(2)
@@ -118,27 +87,18 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 	w.abortEditButton.Connect("clicked", w.store.ActionEditAbort)
 	buttonBox.Add(w.abortEditButton)
 
-	deleteConfirm, err := gtk.ButtonNewWithLabel("Confirm")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create confirm button")
-	}
+	deleteConfirm := gtk.ButtonNewWithLabel("Confirm")
 	deleteConfirm.Connect("clicked", w.onDelete)
 	deleteConfirm.Show()
-	confirmPopover, err := gtk.PopoverNew(w.deleteButton)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create confirm popover")
-	}
+	confirmPopover := gtk.PopoverNew(w.deleteButton)
 	confirmPopover.Add(deleteConfirm)
 	confirmPopover.SetBorderWidth(5)
 
-	deleteImage, err := gtk.ImageNewFromIconName("edit-delete-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create deleteImage")
-	}
+	deleteImage := gtk.ImageNewFromIconName("edit-delete-symbolic", gtk.IconSizeButton)
 	w.deleteButton.SetImage(deleteImage)
 	w.deleteButton.SetLabel("Delete")
 	w.deleteButton.SetAlwaysShowImage(true)
-	w.deleteButton.SetHAlign(gtk.ALIGN_END)
+	w.deleteButton.SetHAlign(gtk.AlignEnd)
 	w.deleteButton.SetHExpand(true)
 	w.deleteButton.SetMarginTop(2)
 	w.deleteButton.SetMarginStart(2)
@@ -150,7 +110,7 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 
 	w.saveEditButton.SetLabel("Save")
 	w.saveEditButton.SetAlwaysShowImage(true)
-	w.saveEditButton.SetHAlign(gtk.ALIGN_END)
+	w.saveEditButton.SetHAlign(gtk.AlignEnd)
 	w.saveEditButton.SetHExpand(true)
 	w.saveEditButton.SetMarginTop(2)
 	w.saveEditButton.SetMarginStart(2)
@@ -160,40 +120,25 @@ func newSecretDetail(store *state.Store, logger logging.Logger) (*secretDetail, 
 	w.saveEditButton.Connect("clicked", w.onEditSave)
 	buttonBox.Add(w.saveEditButton)
 
-	placeholder, err := newSecretDetailPlaceholder()
-	if err != nil {
-		return nil, err
-	}
+	placeholder := newSecretDetailPlaceholder()
 	w.stack.AddNamed(placeholder, "placeholder")
 
-	w.secretDetailDisplay, err = newSecretDetailDisplay(logger)
-	if err != nil {
-		return nil, err
-	}
+	w.secretDetailDisplay = newSecretDetailDisplay(logger)
 	w.stack.AddNamed(w.secretDetailDisplay, "display")
 
-	w.secretDetailEdit, err = newSecretDetailEdit(store, logger)
-	if err != nil {
-		return nil, err
-	}
+	w.secretDetailEdit = newSecretDetailEdit(store, logger)
 	w.stack.AddNamed(w.secretDetailEdit, "edit")
 
 	w.store.AddListener(w.onStateChanged)
 
-	return w, nil
+	return w
 }
 
-func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
-	menu, err := gtk.MenuNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create menu")
-	}
+func (w *secretDetail) newSecretMenu() *gtk.Menu {
+	menu := gtk.MenuNew()
 
 	for _, secretTypeDefinition := range api.SecretTypes {
-		item, err := gtk.MenuItemNewWithLabel(secretTypeDefinition.Display)
-		if err != nil {
-			return nil, errors.Wrap(err, "Failed to create menu item")
-		}
+		item := gtk.MenuItemNewWithLabel(secretTypeDefinition.Display)
 		secretType := secretTypeDefinition.Type
 		item.Connect("activate", func() {
 			w.store.ActionEditNew(secretType)
@@ -202,7 +147,7 @@ func (w *secretDetail) newSecretMenu() (*gtk.Menu, error) {
 		menu.Append(item)
 	}
 
-	return menu, nil
+	return menu
 }
 
 func (w *secretDetail) onDelete() {

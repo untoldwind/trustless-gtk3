@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -19,36 +18,13 @@ type secretVersionSelect struct {
 	versions       api.SecretVersions
 }
 
-func newSecretVersionSelect(logger logging.Logger) (*secretVersionSelect, error) {
-	stack, err := gtk.StackNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create stack")
-	}
-
-	timestampLabel, err := gtk.LabelNew("")
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create timeStampLabel")
-	}
-
-	backButton, err := gtk.ButtonNewFromIconName("media-seek-backward-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create backButton")
-	}
-
-	forwardButton, err := gtk.ButtonNewFromIconName("media-seek-forward-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create forwardButton")
-	}
-
-	versionsSelect, err := gtk.ComboBoxTextNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create versionsSelect")
-	}
-
-	currentButton, err := gtk.ButtonNewFromIconName("media-skip-forward-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create currentButton")
-	}
+func newSecretVersionSelect(logger logging.Logger) *secretVersionSelect {
+	stack := gtk.StackNew()
+	timestampLabel := gtk.LabelNew("")
+	backButton := gtk.ButtonNewFromIconName("media-seek-backward-symbolic", gtk.IconSizeButton)
+	forwardButton := gtk.ButtonNewFromIconName("media-seek-forward-symbolic", gtk.IconSizeButton)
+	versionsSelect := gtk.ComboBoxTextNew()
+	currentButton := gtk.ButtonNewFromIconName("media-skip-forward-symbolic", gtk.IconSizeButton)
 
 	w := &secretVersionSelect{
 		Stack:          stack,
@@ -60,10 +36,7 @@ func newSecretVersionSelect(logger logging.Logger) (*secretVersionSelect, error)
 		currentButton:  currentButton,
 	}
 
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 2)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 2)
 	w.AddNamed(timestampLabel, "label")
 	w.AddNamed(box, "box")
 
@@ -77,7 +50,7 @@ func newSecretVersionSelect(logger logging.Logger) (*secretVersionSelect, error)
 	w.currentButton.Connect("clicked", w.onCurrent)
 	box.Add(w.currentButton)
 
-	return w, nil
+	return w
 }
 
 func (w *secretVersionSelect) onSelect(selectHandler func(*api.SecretVersion)) {

@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/api"
 )
 
@@ -20,23 +19,20 @@ type secretPropertiesDisplay struct {
 	logger  logging.Logger
 }
 
-func newSecretPropertiesDisplay(logger logging.Logger) (*secretPropertiesDisplay, error) {
-	grid, err := gtk.GridNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create grid")
-	}
+func newSecretPropertiesDisplay(logger logging.Logger) *secretPropertiesDisplay {
+	grid := gtk.GridNew()
 
 	w := &secretPropertiesDisplay{
 		Grid:   grid,
 		logger: logger.WithField("package", "ui").WithField("component", "secretPropertiesDisplay"),
 	}
 
-	w.SetOrientation(gtk.ORIENTATION_HORIZONTAL)
+	w.SetOrientation(gtk.OrientationHorizontal)
 	w.SetBorderWidth(5)
 	w.SetColumnSpacing(5)
 	w.SetRowSpacing(5)
 
-	return w, nil
+	return w
 }
 
 func (w *secretPropertiesDisplay) display(secretVersion *api.SecretVersion, passwordStrengths map[string]*api.PasswordStrength) {
@@ -67,13 +63,9 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 	if len(urls) == 0 {
 		return
 	}
-	label, err := gtk.LabelNew("URLs")
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
-	label.SetHAlign(gtk.ALIGN_START)
-	label.SetVAlign(gtk.ALIGN_START)
+	label := gtk.LabelNew("URLs")
+	label.SetHAlign(gtk.AlignStart)
+	label.SetVAlign(gtk.AlignStart)
 	w.widgets = append(w.widgets, label)
 	w.Attach(label, 0, w.rows, 1, 1)
 
@@ -84,7 +76,7 @@ func (w *secretPropertiesDisplay) renderUrls(urls []string) {
 			continue
 		}
 		urlLabel.SetHExpand(true)
-		urlLabel.SetHAlign(gtk.ALIGN_START)
+		urlLabel.SetHAlign(gtk.AlignStart)
 
 		w.widgets = append(w.widgets, urlLabel)
 		w.Attach(urlLabel, 1, w.rows, 1, 1)
@@ -100,21 +92,13 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 			continue
 		}
 		renderedNames[propertyDef.Name] = true
-		label, err := gtk.LabelNew(propertyDef.Display)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
-		label.SetHAlign(gtk.ALIGN_START)
-		label.SetVAlign(gtk.ALIGN_START)
+		label := gtk.LabelNew(propertyDef.Display)
+		label.SetHAlign(gtk.AlignStart)
+		label.SetVAlign(gtk.AlignStart)
 		w.widgets = append(w.widgets, label)
 		w.Attach(label, 0, w.rows, 1, 1)
 
-		valueDisplay, err := newSecretValueDisplay(value, propertyDef.Blurred, passwordStrengths[propertyDef.Name], w.logger)
-		if err != nil {
-			w.logger.ErrorErr(err)
-			continue
-		}
+		valueDisplay := newSecretValueDisplay(value, propertyDef.Blurred, passwordStrengths[propertyDef.Name], w.logger)
 		valueDisplay.SetHExpand(true)
 		w.widgets = append(w.widgets, valueDisplay)
 		w.Attach(valueDisplay, 1, w.rows, 1, 1)

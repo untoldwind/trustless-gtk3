@@ -3,9 +3,8 @@ package ui
 import (
 	"time"
 
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
+	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless-gtk3/state"
 )
 
@@ -17,15 +16,9 @@ type headerBar struct {
 	lockTimeLevel *gtk.LevelBar
 }
 
-func newHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 20)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create box")
-	}
-	searchEntry, err := gtk.SearchEntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create searchEntry")
-	}
+func newHeaderBar(store *state.Store, logger logging.Logger) *headerBar {
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 20)
+	searchEntry := gtk.SearchEntryNew()
 
 	w := &headerBar{
 		Box:         box,
@@ -43,31 +36,22 @@ func newHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error)
 	w.Add(searchEntry)
 	w.SetFocusChild(searchEntry)
 
-	lockBox, err := gtk.BoxNew(gtk.ORIENTATION_VERTICAL, 0)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create lock box")
-	}
+	lockBox := gtk.BoxNew(gtk.OrientationVertical, 0)
 	w.Add(lockBox)
-	lockBox.SetHAlign(gtk.ALIGN_END)
+	lockBox.SetHAlign(gtk.AlignEnd)
 	lockBox.SetMarginTop(2)
 	lockBox.SetMarginStart(2)
 	lockBox.SetMarginEnd(2)
 	lockBox.SetMarginBottom(2)
 	lockBox.SetHExpand(true)
 
-	lockButton, err := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create lock button")
-	}
+	lockButton := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.IconSizeButton)
 	lockButton.SetLabel(" Lock ")
 	lockButton.SetAlwaysShowImage(true)
 	lockButton.Connect("clicked", w.onLock)
 	lockBox.Add(lockButton)
 
-	w.lockTimeLevel, err = gtk.LevelBarNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create lock level bar")
-	}
+	w.lockTimeLevel = gtk.LevelBarNew()
 	w.lockTimeLevel.SetMinValue(0)
 	w.lockTimeLevel.SetMaxValue(300)
 	w.lockTimeLevel.SetValue(0)
@@ -75,15 +59,11 @@ func newHeaderBar(store *state.Store, logger logging.Logger) (*headerBar, error)
 
 	w.store.AddListener(w.onStateChange)
 
-	return w, nil
+	return w
 }
 
 func (w *headerBar) onSearchChanged() {
-	filter, err := w.searchEntry.GetText()
-	if err != nil {
-		w.logger.ErrorErr(err)
-		return
-	}
+	filter := w.searchEntry.GetText()
 	w.store.ActionUpdateEntryFilter(filter)
 }
 

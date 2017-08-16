@@ -1,28 +1,19 @@
 package ui
 
 import (
-	"github.com/gotk3/gotk3/gtk"
 	"github.com/leanovate/microtools/logging"
-	"github.com/pkg/errors"
-	"github.com/untoldwind/trustless-gtk3/gtkextra"
+	"github.com/untoldwind/amintk/gtk"
 )
 
 type urlsEditBox struct {
 	*gtk.Box
-	handleRefs gtkextra.HandleRefs
-	entry      *gtk.Entry
+	entry *gtk.Entry
 }
 
 func newUrlsEditBox(logger logging.Logger, onRemove func()) (*urlsEditBox, error) {
-	box, err := gtk.BoxNew(gtk.ORIENTATION_HORIZONTAL, 1)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create urls edit box")
-	}
+	box := gtk.BoxNew(gtk.OrientationHorizontal, 1)
 
-	entry, err := gtk.EntryNew()
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create urls edit entry")
-	}
+	entry := gtk.EntryNew()
 	entry.SetHExpand(true)
 	box.Add(entry)
 
@@ -31,19 +22,11 @@ func newUrlsEditBox(logger logging.Logger, onRemove func()) (*urlsEditBox, error
 		entry: entry,
 	}
 
-	removeButton, err := gtk.ButtonNewFromIconName("list-remove-symbolic", gtk.ICON_SIZE_BUTTON)
-	if err != nil {
-		return nil, errors.Wrap(err, "Failed to create urls edit remove")
-	}
+	removeButton := gtk.ButtonNewFromIconName("list-remove-symbolic", gtk.IconSizeButton)
 	w.Add(removeButton)
-	w.handleRefs.SafeConnect(removeButton.Object, "clicked", onRemove)
+	removeButton.Connect("clicked", onRemove)
 
 	return w, nil
-}
-
-func (w *urlsEditBox) Destroy() {
-	w.handleRefs.Cleanup()
-	w.Box.Destroy()
 }
 
 func (w *urlsEditBox) remove() {
@@ -51,7 +34,7 @@ func (w *urlsEditBox) remove() {
 	w.Hide()
 }
 
-func (w *urlsEditBox) getText() (string, error) {
+func (w *urlsEditBox) getText() string {
 	return w.entry.GetText()
 }
 

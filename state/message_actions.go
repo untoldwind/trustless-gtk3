@@ -3,7 +3,7 @@ package state
 import (
 	"time"
 
-	"github.com/gotk3/gotk3/gtk"
+	"github.com/untoldwind/amintk/gtk"
 )
 
 func (s *Store) ActionAddMessage(messageType gtk.MessageType, messageText string, timeout time.Duration) {
