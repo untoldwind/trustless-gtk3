@@ -5,7 +5,7 @@ import:
   subpackages:
   - api
   - secrets
-- package: github.com/gotk3/gotk3
+- package: github.com/untoldwind/amintk
   subpackages:
   - gtk
 - package: github.com/shibukawa/configdir
