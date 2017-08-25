@@ -17,18 +17,23 @@ type Display struct {
 
 // native returns a pointer to the underlying GtkComboBox.
 func (v *Display) native() *C.GdkDisplay {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GdkDisplay)(p)
+	return (*C.GdkDisplay)(v.Native())
 }
 
 // DisplayGetDefault is a wrapper around gdk_display_get_default().
 func DisplayGetDefault() *Display {
 	c := C.gdk_display_get_default()
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return &Display{Object: obj}
+	return WrapDisplay(unsafe.Pointer(c))
+}
+
+func WrapDisplay(p unsafe.Pointer) *Display {
+	if obj := glib.WrapObject(p); obj != nil {
+		return &Display{Object: obj}
+	}
+	return nil
 }
 
 func (v *Display) CursorFromName(name string) *Cursor {

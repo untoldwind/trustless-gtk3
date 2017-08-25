@@ -31,7 +31,7 @@ func newHeaderBar(store *state.Store, logger logging.Logger) *headerBar {
 	w.searchEntry.SetMarginStart(2)
 	w.searchEntry.SetMarginEnd(2)
 	w.searchEntry.SetMarginBottom(2)
-	w.searchEntry.Connect("search-changed", w.onSearchChanged)
+	w.searchEntry.OnSearchChanged(w.onSearchChanged)
 	w.searchEntry.SetWidthChars(32)
 	w.Add(searchEntry)
 	w.SetFocusChild(searchEntry)
@@ -48,7 +48,7 @@ func newHeaderBar(store *state.Store, logger logging.Logger) *headerBar {
 	lockButton := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.IconSizeButton)
 	lockButton.SetLabel(" Lock ")
 	lockButton.SetAlwaysShowImage(true)
-	lockButton.Connect("clicked", w.onLock)
+	lockButton.OnClicked(w.onLock)
 	lockBox.Add(lockButton)
 
 	w.lockTimeLevel = gtk.LevelBarNew()

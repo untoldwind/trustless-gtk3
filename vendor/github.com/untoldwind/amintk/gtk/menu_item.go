@@ -26,11 +26,10 @@ type IMenuItem interface {
 
 // native returns a pointer to the underlying GtkMenuItem.
 func (v *MenuItem) native() *C.GtkMenuItem {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkMenuItem)(p)
+	return (*C.GtkMenuItem)(v.Native())
 }
 
 func (v *MenuItem) toMenuItem() *C.GtkMenuItem {
@@ -66,4 +65,10 @@ func (v *MenuItem) SetLabel(label string) {
 func (v *MenuItem) GetLabel() string {
 	l := C.gtk_menu_item_get_label(v.native())
 	return C.GoString((*C.char)(l))
+}
+
+func (v *MenuItem) OnActivate(callback func()) {
+	if v != nil {
+		v.Connect("activate", glib.CallbackVoidVoid(callback))
+	}
 }

@@ -53,3 +53,7 @@ func gbool(b bool) C.gboolean {
 	}
 	return C.gboolean(0)
 }
+
+func gobool(b C.gboolean) bool {
+	return b != C.FALSE
+}

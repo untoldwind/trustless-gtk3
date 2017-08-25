@@ -55,7 +55,7 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 		revealButton := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.IconSizeButton)
 
 		revealButton.SetTooltipText("Reveal")
-		revealButton.Connect("clicked", func() {
+		revealButton.OnClicked(func() {
 			blurredStack.SetVisibleChildName("hide")
 			w.label.SetText(value)
 			w.label.SetSelectable(true)
@@ -65,7 +65,7 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 		hideButton := gtk.ButtonNewFromIconName("changes-prevent-symbolic", gtk.IconSizeButton)
 
 		hideButton.SetTooltipText("Hide")
-		hideButton.Connect("clicked", func() {
+		hideButton.OnClicked(func() {
 			blurredStack.SetVisibleChildName("reveal")
 			w.label.SetText("***************")
 			w.label.SetSelectable(false)
@@ -77,7 +77,7 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 	copyButton.SetTooltipText("Copy")
 	copyButton.SetHAlign(gtk.AlignFill)
 	copyButton.SetVAlign(gtk.AlignStart)
-	copyButton.Connect("clicked", func() {
+	copyButton.OnClicked(func() {
 		safeCopy(w.logger, value)
 	})
 	w.Add(copyButton)

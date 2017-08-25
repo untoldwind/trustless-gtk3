@@ -17,11 +17,17 @@ type Window struct {
 
 // native returns a pointer to the underlying GtkComboBox.
 func (v *Window) native() *C.GdkWindow {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GdkWindow)(p)
+	return (*C.GdkWindow)(v.Native())
+}
+
+func WrapWindow(p unsafe.Pointer) *Window {
+	if obj := glib.WrapObject(p); obj != nil {
+		return &Window{Object: obj}
+	}
+	return nil
 }
 
 func (v *Window) SetCursor(cursor *Cursor) {

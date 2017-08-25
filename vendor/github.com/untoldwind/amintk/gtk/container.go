@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Container is a representation of GTK's GtkContainer.
@@ -17,11 +15,17 @@ type Container struct {
 
 // native returns a pointer to the underlying GtkContainer.
 func (v *Container) native() *C.GtkContainer {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkContainer)(p)
+	return (*C.GtkContainer)(v.Native())
+}
+
+func wrapContainer(p unsafe.Pointer) *Container {
+	if widget := wrapWidget(p); widget != nil {
+		return &Container{Widget: *widget}
+	}
+	return nil
 }
 
 // Add is a wrapper around gtk_container_add().
@@ -41,8 +45,7 @@ func (v *Container) Remove(w IWidget) {
 // GetFocusChild is a wrapper around gtk_container_get_focus_child().
 func (v *Container) GetFocusChild() *Widget {
 	c := C.gtk_container_get_focus_child(v.native())
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapWidget(obj)
+	return wrapWidget(unsafe.Pointer(c))
 }
 
 // SetFocusChild is a wrapper around gtk_container_set_focus_child().

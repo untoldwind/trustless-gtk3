@@ -18,22 +18,23 @@ type Clipboard struct {
 
 // native returns a pointer to the underlying GtkClipboard.
 func (v *Clipboard) native() *C.GtkClipboard {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkClipboard)(p)
+	return (*C.GtkClipboard)(v.Native())
 }
 
 // ClipboardGet is a wrapper around gtk_clipboard_get().
 func ClipboardGet(atom gdk.Atom) *Clipboard {
 	c := C.gtk_clipboard_get(C.GdkAtom(unsafe.Pointer(atom)))
-	cb := &Clipboard{glib.WrapObject(unsafe.Pointer(c))}
-	return cb
+	return wrapClipboard(unsafe.Pointer(c))
 }
 
-func wrapClipboard(obj *glib.Object) *Clipboard {
-	return &Clipboard{Object: obj}
+func wrapClipboard(p unsafe.Pointer) *Clipboard {
+	if obj := glib.WrapObject(p); obj != nil {
+		return &Clipboard{Object: obj}
+	}
+	return nil
 }
 
 // WaitIsTextAvailable is a wrapper around gtk_clipboard_wait_is_text_available

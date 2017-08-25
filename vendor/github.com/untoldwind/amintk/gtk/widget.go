@@ -32,11 +32,10 @@ type IWidget interface {
 
 // native returns a pointer to the underlying GtkWidget.
 func (v *Widget) native() *C.GtkWidget {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkWidget)(p)
+	return (*C.GtkWidget)(v.Native())
 }
 
 func (v *Widget) toWidget() *C.GtkWidget {
@@ -46,8 +45,11 @@ func (v *Widget) toWidget() *C.GtkWidget {
 	return v.native()
 }
 
-func wrapWidget(obj *glib.Object) *Widget {
-	return &Widget{glib.InitiallyUnowned{Object: obj}}
+func wrapWidget(p unsafe.Pointer) *Widget {
+	if obj := glib.WrapInitiallyUnowned(p); obj != nil {
+		return &Widget{InitiallyUnowned: *obj}
+	}
+	return nil
 }
 
 // Show is a wrapper around gtk_widget_show().
@@ -78,7 +80,7 @@ func (v *Widget) Destroy() {
 // GetToplevel is a wrapper around gtk_widget_get_toplevel().
 func (v *Widget) GetToplevel() *Widget {
 	c := C.gtk_widget_get_toplevel(v.native())
-	return wrapWidget(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapWidget(unsafe.Pointer(c))
 }
 
 // IsToplevel is a wrapper around gtk_widget_is_toplevel().
@@ -226,6 +228,35 @@ func (v *Widget) GetStyleContext() *StyleContext {
 // GetWindow is a wrapper around gtk_widget_get_window().
 func (v *Widget) GetWindow() *gdk.Window {
 	c := C.gtk_widget_get_window(v.native())
-	w := &gdk.Window{glib.WrapObject(unsafe.Pointer(c))}
-	return w
+	return gdk.WrapWindow(unsafe.Pointer(c))
+}
+
+func (v *Widget) OnDestroy(callback func()) {
+	if v != nil {
+		v.Connect("destroy", glib.CallbackVoidVoid(callback))
+	}
+}
+
+func (v *Widget) OnAfterShow(callback func()) {
+	if v != nil {
+		v.ConnectAfter("show", glib.CallbackVoidVoid(callback))
+	}
+}
+
+func (v *Widget) OnAfterRealize(callback func()) {
+	if v != nil {
+		v.ConnectAfter("realize", glib.CallbackVoidVoid(callback))
+	}
+}
+
+func (v *Widget) OnPopupMenu(callback func()) {
+	if v != nil {
+		v.ConnectAfter("popup-menu", glib.CallbackVoidVoid(callback))
+	}
+}
+
+func (v *Widget) OnButtonPressEvent(callback func(*gdk.Event) bool) {
+	if v != nil {
+		v.Connect("button-press-event", gdk.CallbackEventBoolean(callback))
+	}
 }

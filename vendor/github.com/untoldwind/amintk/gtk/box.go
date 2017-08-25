@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Box is a representation of GTK's GtkBox.
@@ -15,22 +13,23 @@ type Box struct {
 	Container
 }
 
-// native() returns a pointer to the underlying GtkBox.
+// native returns a pointer to the underlying GtkBox.
 func (v *Box) native() *C.GtkBox {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkBox)(p)
+	return (*C.GtkBox)(v.Native())
 }
 
 // BoxNew is a wrapper around gtk_box_new().
 func BoxNew(orientation Orientation, spacing int) *Box {
 	c := C.gtk_box_new(C.GtkOrientation(orientation), C.gint(spacing))
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapBox(obj)
+	return wrapBox(unsafe.Pointer(c))
 }
 
-func wrapBox(obj *glib.Object) *Box {
-	return &Box{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}
+func wrapBox(p unsafe.Pointer) *Box {
+	if container := wrapContainer(p); container != nil {
+		return &Box{Container: *container}
+	}
+	return nil
 }

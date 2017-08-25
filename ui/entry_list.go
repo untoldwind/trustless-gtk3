@@ -44,37 +44,37 @@ func newEntryList(store *state.Store, logger logging.Logger) *entryList {
 
 	copyUsernameItem := gtk.MenuItemNew()
 	copyUsernameItem.SetLabel("Copy username")
-	copyUsernameItem.Connect("activate", w.onCopyUsername)
+	copyUsernameItem.OnActivate(w.onCopyUsername)
 	copyUsernameItem.Show()
 	w.menu.Append(copyUsernameItem)
 	copyPasswordItem := gtk.MenuItemNew()
 	copyPasswordItem.SetLabel("Copy password")
-	copyPasswordItem.Connect("activate", w.onCopyPassword)
+	copyPasswordItem.OnActivate(w.onCopyPassword)
 	copyPasswordItem.Show()
 	w.menu.Append(copyPasswordItem)
 
 	w.Add(w.listBox)
 
 	w.listBox.SetSelectionMode(gtk.SelectionModeSingle)
-	w.listBox.ConnectAfter("row-selected", w.onCursorChanged)
-	w.listBox.ConnectAfter("realize", w.onAfterRealize)
-	w.listBox.Connect("button-press-event", w.onButtonPress)
-	w.listBox.Connect("popup-menu", w.onPopupMenu)
+	w.listBox.OnAfterRowSelected(w.onCursorChanged)
+	w.listBox.OnAfterRealize(w.onAfterRealize)
+	w.listBox.OnButtonPressEvent(w.onButtonPress)
+	w.listBox.OnPopupMenu(w.onPopupMenu)
 
 	store.AddListener(w.onStateChange)
 
 	return w
 }
 
-func (w *entryList) onButtonPress() {
-	event := gtk.CurrentEvent()
+func (w *entryList) onButtonPress(event *gdk.Event) bool {
 	if event == nil {
-		return
+		return false
 	}
 	buttonEvent := gdk.EventButton{Event: event}
 	if buttonEvent.Button() == 3 {
 		w.menu.PopupAtPointer(event)
 	}
+	return false
 }
 
 func (w *entryList) onPopupMenu() {
@@ -108,8 +108,7 @@ func (w *entryList) onAfterRealize() {
 	w.store.ActionRefreshEntries()
 }
 
-func (w *entryList) onCursorChanged() {
-	row := w.listBox.GetSelectedRow()
+func (w *entryList) onCursorChanged(row *gtk.ListBoxRow) {
 	if row == nil {
 		return
 	}
@@ -119,39 +118,44 @@ func (w *entryList) onCursorChanged() {
 }
 
 func (w *entryList) onStateChange(prev, next *state.State) {
-	var selectedRow *gtk.ListBoxRow
-	for i, entry := range next.VisibleEntries {
-		if i < len(w.entryRows) {
-			row := w.entryRows[i]
-			row.label.SetText(entry.Name)
-			row.entry = entry
-			if row.entry == next.SelectedEntry {
-				selectedRow = row.ListBoxRow
+	if prev.VisibleEntries != next.VisibleEntries && next.VisibleEntries != nil {
+		for i, entry := range next.VisibleEntries.Entries {
+			if i < len(w.entryRows) {
+				row := w.entryRows[i]
+				row.label.SetText(entry.Name)
+				row.entry = entry
+				row.ShowAll()
+			} else {
+				listBoxRow := gtk.ListBoxRowNew()
+				label := gtk.LabelNew(entry.Name)
+				label.SetHAlign(gtk.AlignStart)
+				listBoxRow.Add(label)
+				listBoxRow.ShowAll()
+				row := &entryRow{
+					ListBoxRow: listBoxRow,
+					label:      label,
+					entry:      entry,
+				}
+				w.entryRows = append(w.entryRows, row)
+				w.listBox.Add(row)
 			}
-			row.ShowAll()
-		} else {
-			listBoxRow := gtk.ListBoxRowNew()
-			label := gtk.LabelNew(entry.Name)
-			label.SetHAlign(gtk.AlignStart)
-			listBoxRow.Add(label)
-			listBoxRow.ShowAll()
-			row := &entryRow{
-				ListBoxRow: listBoxRow,
-				label:      label,
-				entry:      entry,
-			}
-			w.entryRows = append(w.entryRows, row)
-			w.listBox.Add(row)
-
-			if row.entry == next.SelectedEntry {
-				selectedRow = row.ListBoxRow
+		}
+		if len(next.VisibleEntries.Entries) < len(w.entryRows) {
+			for _, row := range w.entryRows[len(next.VisibleEntries.Entries):] {
+				row.Hide()
 			}
 		}
 	}
-	if len(next.VisibleEntries) < len(w.entryRows) {
-		for _, row := range w.entryRows[len(next.VisibleEntries):] {
-			row.Hide()
+	if next.SelectedEntry == nil {
+		w.listBox.SelectRow(nil)
+	} else {
+		var selectedRow *gtk.ListBoxRow
+		for _, row := range w.entryRows {
+			if row.entry == next.SelectedEntry {
+				selectedRow = row.ListBoxRow
+				break
+			}
 		}
+		w.listBox.SelectRow(selectedRow)
 	}
-	w.listBox.SelectRow(selectedRow)
 }

@@ -73,7 +73,7 @@ func newSecretDetail(store *state.Store, logger logging.Logger) *secretDetail {
 	w.changeButton.SetMarginEnd(2)
 	w.changeButton.SetMarginBottom(2)
 	w.changeButton.SetNoShowAll(true)
-	w.changeButton.Connect("clicked", w.store.ActionEditCurrent)
+	w.changeButton.OnClicked(w.store.ActionEditCurrent)
 	buttonBox.Add(w.changeButton)
 
 	w.abortEditButton.SetLabel("Abort")
@@ -84,11 +84,11 @@ func newSecretDetail(store *state.Store, logger logging.Logger) *secretDetail {
 	w.abortEditButton.SetMarginEnd(2)
 	w.abortEditButton.SetMarginBottom(2)
 	w.abortEditButton.SetNoShowAll(true)
-	w.abortEditButton.Connect("clicked", w.store.ActionEditAbort)
+	w.abortEditButton.OnClicked(w.store.ActionEditAbort)
 	buttonBox.Add(w.abortEditButton)
 
 	deleteConfirm := gtk.ButtonNewWithLabel("Confirm")
-	deleteConfirm.Connect("clicked", w.onDelete)
+	deleteConfirm.OnClicked(w.onDelete)
 	deleteConfirm.Show()
 	confirmPopover := gtk.PopoverNew(w.deleteButton)
 	confirmPopover.Add(deleteConfirm)
@@ -117,7 +117,7 @@ func newSecretDetail(store *state.Store, logger logging.Logger) *secretDetail {
 	w.saveEditButton.SetMarginEnd(2)
 	w.saveEditButton.SetMarginBottom(2)
 	w.saveEditButton.SetNoShowAll(true)
-	w.saveEditButton.Connect("clicked", w.onEditSave)
+	w.saveEditButton.OnClicked(w.onEditSave)
 	buttonBox.Add(w.saveEditButton)
 
 	placeholder := newSecretDetailPlaceholder()
@@ -140,7 +140,7 @@ func (w *secretDetail) newSecretMenu() *gtk.Menu {
 	for _, secretTypeDefinition := range api.SecretTypes {
 		item := gtk.MenuItemNewWithLabel(secretTypeDefinition.Display)
 		secretType := secretTypeDefinition.Type
-		item.Connect("activate", func() {
+		item.OnActivate(func() {
 			w.store.ActionEditNew(secretType)
 		})
 		item.Show()

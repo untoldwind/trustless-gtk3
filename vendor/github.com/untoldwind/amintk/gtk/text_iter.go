@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // TextIter is a representation of GTK's GtkTextIter
@@ -15,6 +13,9 @@ type TextIter C.GtkTextIter
 
 // native returns a pointer to the underlying GtkTextIter.
 func (v *TextIter) native() *C.GtkTextIter {
+	if v == nil {
+		return nil
+	}
 	return (*C.GtkTextIter)(v)
 }
 
@@ -24,7 +25,7 @@ func (v *TextIter) GetBuffer() *TextBuffer {
 	if c == nil {
 		return nil
 	}
-	return wrapTextBuffer(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapTextBuffer(unsafe.Pointer(c))
 }
 
 // GetText is a wrapper around gtk_text_iter_get_text().

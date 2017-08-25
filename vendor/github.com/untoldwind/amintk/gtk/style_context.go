@@ -5,8 +5,6 @@ package gtk
 // #include <gtk/gtk.h>
 import "C"
 import (
-	"unsafe"
-
 	"github.com/untoldwind/amintk/glib"
 )
 
@@ -41,11 +39,10 @@ type StyleContext struct {
 
 // native returns a pointer to the underlying GtkStyleContext.
 func (v *StyleContext) native() *C.GtkStyleContext {
-	if v == nil || v.Object == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkStyleContext)(p)
+	return (*C.GtkStyleContext)(v.Native())
 }
 
 func wrapStyleContext(obj *glib.Object) *StyleContext {

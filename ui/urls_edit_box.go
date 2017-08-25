@@ -24,7 +24,7 @@ func newUrlsEditBox(logger logging.Logger, onRemove func()) (*urlsEditBox, error
 
 	removeButton := gtk.ButtonNewFromIconName("list-remove-symbolic", gtk.IconSizeButton)
 	w.Add(removeButton)
-	removeButton.Connect("clicked", onRemove)
+	removeButton.OnClicked(onRemove)
 
 	return w, nil
 }

@@ -21,8 +21,8 @@ type State struct {
 	Locked             bool
 	AutoLockIn         time.Duration
 	Identities         []api.Identity
-	allEntries         []*api.SecretEntry
-	VisibleEntries     []*api.SecretEntry
+	allEntries         *api.SecretList
+	VisibleEntries     *api.SecretList
 	Messages           []*Message
 	SelectedEntry      *api.SecretEntry
 	CurrentSecret      *api.Secret
@@ -141,7 +141,7 @@ func (s *Store) checkStatus() {
 			if err != nil {
 				s.logger.ErrorErr(err)
 			} else {
-				state.allEntries = list.Entries
+				state.allEntries = list
 			}
 			state.Locked = false
 			if status.AutolockAt != nil {

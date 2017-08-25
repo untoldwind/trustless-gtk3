@@ -17,25 +17,27 @@ type TextBuffer struct {
 
 // native returns a pointer to the underlying GtkTextBuffer.
 func (v *TextBuffer) native() *C.GtkTextBuffer {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkTextBuffer)(p)
+	return (*C.GtkTextBuffer)(v.Native())
 }
 
-func wrapTextBuffer(obj *glib.Object) *TextBuffer {
-	return &TextBuffer{Object: obj}
+func wrapTextBuffer(p unsafe.Pointer) *TextBuffer {
+	if obj := glib.WrapObject(p); obj != nil {
+		return &TextBuffer{Object: obj}
+	}
+	return nil
 }
 
-// GetStartIter() is a wrapper around gtk_text_buffer_get_start_iter().
+// GetStartIter is a wrapper around gtk_text_buffer_get_start_iter().
 func (v *TextBuffer) GetStartIter() *TextIter {
 	var iter C.GtkTextIter
 	C.gtk_text_buffer_get_start_iter(v.native(), &iter)
 	return (*TextIter)(&iter)
 }
 
-// GetEndIter() is a wrapper around gtk_text_buffer_get_end_iter().
+// GetEndIter is a wrapper around gtk_text_buffer_get_end_iter().
 func (v *TextBuffer) GetEndIter() *TextIter {
 	var iter C.GtkTextIter
 	C.gtk_text_buffer_get_end_iter(v.native(), &iter)

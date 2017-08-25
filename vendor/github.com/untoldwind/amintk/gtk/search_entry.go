@@ -17,19 +17,27 @@ type SearchEntry struct {
 
 // native returns a pointer to the underlying GtkSearchEntry.
 func (v *SearchEntry) native() *C.GtkSearchEntry {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkSearchEntry)(p)
+	return (*C.GtkSearchEntry)(v.Native())
 }
 
 // SearchEntryNew is a wrapper around gtk_search_entry_new().
 func SearchEntryNew() *SearchEntry {
 	c := C.gtk_search_entry_new()
-	return wrapSearchEntry(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapSearchEntry(unsafe.Pointer(c))
 }
 
-func wrapSearchEntry(obj *glib.Object) *SearchEntry {
-	return &SearchEntry{Entry{Widget{glib.InitiallyUnowned{Object: obj}}}}
+func wrapSearchEntry(p unsafe.Pointer) *SearchEntry {
+	if entry := wrapEntry(p); entry != nil {
+		return &SearchEntry{Entry: *entry}
+	}
+	return nil
+}
+
+func (v *Widget) OnSearchChanged(callback func()) {
+	if v != nil {
+		v.ConnectAfter("search-changed", glib.CallbackVoidVoid(callback))
+	}
 }

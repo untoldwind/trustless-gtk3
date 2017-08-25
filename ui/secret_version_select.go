@@ -40,14 +40,14 @@ func newSecretVersionSelect(logger logging.Logger) *secretVersionSelect {
 	w.AddNamed(timestampLabel, "label")
 	w.AddNamed(box, "box")
 
-	w.backButton.Connect("clicked", w.onBack)
+	w.backButton.OnClicked(w.onBack)
 	box.Add(w.backButton)
 	w.versionsSelect.SetHExpand(true)
-	w.versionsSelect.Connect("changed", w.onVersionSelect)
+	w.versionsSelect.OnChanged(w.onVersionSelect)
 	box.Add(w.versionsSelect)
-	w.forwardButton.Connect("clicked", w.onForward)
+	w.forwardButton.OnClicked(w.onForward)
 	box.Add(w.forwardButton)
-	w.currentButton.Connect("clicked", w.onCurrent)
+	w.currentButton.OnClicked(w.onCurrent)
 	box.Add(w.currentButton)
 
 	return w

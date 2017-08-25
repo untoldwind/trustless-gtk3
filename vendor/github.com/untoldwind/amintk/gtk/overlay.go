@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Overlay is a representation of GTK's GtkOverlay.
@@ -17,24 +15,26 @@ type Overlay struct {
 
 // native returns a pointer to the underlying GtkOverlay.
 func (v *Overlay) native() *C.GtkOverlay {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkOverlay)(p)
+	return (*C.GtkOverlay)(v.Native())
 }
 
-// OverlayNew() is a wrapper around gtk_overlay_new().
+// OverlayNew is a wrapper around gtk_overlay_new().
 func OverlayNew() *Overlay {
 	c := C.gtk_overlay_new()
-	return wrapOverlay(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapOverlay(unsafe.Pointer(c))
 }
 
-func wrapOverlay(obj *glib.Object) *Overlay {
-	return &Overlay{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapOverlay(p unsafe.Pointer) *Overlay {
+	if bin := wrapBin(p); bin != nil {
+		return &Overlay{Bin: *bin}
+	}
+	return nil
 }
 
-// AddOverlay() is a wrapper around gtk_overlay_add_overlay().
+// AddOverlay is a wrapper around gtk_overlay_add_overlay().
 func (v *Overlay) AddOverlay(widget IWidget) {
 	C.gtk_overlay_add_overlay(v.native(), widget.toWidget())
 }

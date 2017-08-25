@@ -26,21 +26,22 @@ type InfoBar struct {
 }
 
 func (v *InfoBar) native() *C.GtkInfoBar {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkInfoBar)(p)
+	return (*C.GtkInfoBar)(v.Native())
 }
 
 func InfoBarNew() *InfoBar {
 	c := C.gtk_info_bar_new()
-	return wrapInfoBar(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapInfoBar(unsafe.Pointer(c))
 }
 
-func wrapInfoBar(obj *glib.Object) *InfoBar {
-	return &InfoBar{Box{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapInfoBar(p unsafe.Pointer) *InfoBar {
+	if box := wrapBox(p); box != nil {
+		return &InfoBar{Box: *box}
+	}
+	return nil
 }
 
 func (v *InfoBar) SetMessageType(messageType MessageType) {
@@ -66,7 +67,7 @@ func (v *InfoBar) GetContentArea() *Box {
 	if c == nil {
 		return nil
 	}
-	return wrapBox(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapBox(unsafe.Pointer(c))
 }
 
 func (v *InfoBar) GetActionArea() *Widget {
@@ -74,5 +75,17 @@ func (v *InfoBar) GetActionArea() *Widget {
 	if c == nil {
 		return nil
 	}
-	return wrapWidget(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapWidget(unsafe.Pointer(c))
+}
+
+func (v *InfoBar) OnClose(callback func()) {
+	if v != nil {
+		v.Connect("close", glib.CallbackVoidVoid(callback))
+	}
+}
+
+func (v *InfoBar) OnResponse(callback func(responseId int)) {
+	if v != nil {
+		v.Connect("close", glib.CallbackIntVoid(callback))
+	}
 }

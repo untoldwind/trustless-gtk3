@@ -42,12 +42,12 @@ func newSecretPasswordEdit(store *state.Store, logger logging.Logger) *secretPas
 	entryBox.Add(entry)
 	entryBox.Add(passwordStrengthBar)
 	w.Add(entryBox)
-	entry.Connect("changed", w.onEntryChange)
+	entry.OnChanged(w.onEntryChange)
 
 	revealButton := gtk.ButtonNewFromIconName("changes-allow-symbolic", gtk.IconSizeButton)
 	revealButton.SetTooltipText("Reveal")
 	w.Add(revealButton)
-	revealButton.Connect("clicked", w.onToggleReveal)
+	revealButton.OnClicked(w.onToggleReveal)
 
 	generatePopover := gtk.PopoverNew(w.generateButton)
 	w.generateForm.ShowAll()

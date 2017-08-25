@@ -27,7 +27,7 @@ func NewMainWindow(store *state.Store, logger logging.Logger) (*MainWindow, erro
 	}
 
 	w.SetTitle("Trustless")
-	w.Connect("destroy", gtk.MainQuit)
+	w.OnDestroy(gtk.MainQuit)
 	w.SetDefaultSize(800, 600)
 
 	unlockFrame := newUnlockFrame(store, logger)
@@ -40,7 +40,7 @@ func NewMainWindow(store *state.Store, logger logging.Logger) (*MainWindow, erro
 	withMessagePopups.Add(stack)
 	w.stack.AddNamed(unlockFrame, "unlockFrame")
 	w.stack.AddNamed(secretsFrame, "secretsFrame")
-	w.stack.ConnectAfter("show", w.onAfterShow)
+	w.stack.OnAfterShow(w.onAfterShow)
 
 	w.store.AddListener(w.onStateChange)
 

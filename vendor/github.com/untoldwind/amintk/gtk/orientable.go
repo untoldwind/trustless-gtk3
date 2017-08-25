@@ -5,8 +5,6 @@ package gtk
 // #include <gtk/gtk.h>
 import "C"
 import (
-	"unsafe"
-
 	"github.com/untoldwind/amintk/glib"
 )
 
@@ -25,11 +23,10 @@ type Orientable struct {
 
 // native returns a pointer to the underlying GObject as a GtkOrientable.
 func (v *Orientable) native() *C.GtkOrientable {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkOrientable)(p)
+	return (*C.GtkOrientable)(v.Native())
 }
 
 func wrapOrientable(obj *glib.Object) *Orientable {

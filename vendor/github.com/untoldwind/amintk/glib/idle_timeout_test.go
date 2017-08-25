@@ -1,7 +1,6 @@
 package glib_test
 
 import (
-	"fmt"
 	"runtime"
 	"testing"
 
@@ -17,16 +16,19 @@ func TestIdleTimeout(t *testing.T) {
 
 	require.False(gtk.EventsPending())
 
+	called := false
 	_, err := glib.IdleAdd(func() {
-		fmt.Println("bla")
+		called = true
 	})
 	require.Nil(err)
 	require.Equal(1, glib.RegisteredClosures())
+	require.False(called)
 
 	require.True(gtk.EventsPending())
 
 	gtk.MainIteration()
 
 	require.False(gtk.EventsPending())
+	require.True(called)
 	require.Equal(0, glib.RegisteredClosures())
 }

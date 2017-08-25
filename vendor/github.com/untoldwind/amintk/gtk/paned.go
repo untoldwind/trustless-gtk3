@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Paned is a representation of GTK's GtkPaned.
@@ -17,21 +15,23 @@ type Paned struct {
 
 // native returns a pointer to the underlying GtkPaned.
 func (v *Paned) native() *C.GtkPaned {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkPaned)(p)
+	return (*C.GtkPaned)(v.Native())
 }
 
 // PanedNew is a wrapper around gtk_paned_new().
 func PanedNew(orientation Orientation) *Paned {
 	c := C.gtk_paned_new(C.GtkOrientation(orientation))
-	return wrapPaned(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapPaned(unsafe.Pointer(c))
 }
 
-func wrapPaned(obj *glib.Object) *Paned {
-	return &Paned{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapPaned(p unsafe.Pointer) *Paned {
+	if bin := wrapBin(p); bin != nil {
+		return &Paned{Bin: *bin}
+	}
+	return nil
 }
 
 // Add1 is a wrapper around gtk_paned_add1().

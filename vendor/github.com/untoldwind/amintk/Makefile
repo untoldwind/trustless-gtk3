@@ -1,7 +1,7 @@
 PKGS = ./fixtures/... ./glib/... ./gdk/... ./gtk/...
 
 all: export GOPATH=${PWD}/../../../..
-all:
+all: format
 	@echo "--> Build"
 	@go build -i ${PKGS}
 
@@ -18,6 +18,7 @@ format:
 test: export GOPATH=${PWD}/../../../..
 test:
 	@echo "--> Running tests"
+	@go test -i -v ${PKGS}
 	@go test -v ${PKGS}
 
 glide.install:

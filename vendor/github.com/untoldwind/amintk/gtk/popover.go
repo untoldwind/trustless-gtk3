@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 type Popover struct {
@@ -15,11 +13,10 @@ type Popover struct {
 }
 
 func (v *Popover) native() *C.GtkPopover {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkPopover)(p)
+	return (*C.GtkPopover)(v.Native())
 }
 
 func PopoverNew(relative IWidget) *Popover {
@@ -30,9 +27,12 @@ func PopoverNew(relative IWidget) *Popover {
 	} else {
 		c = C.gtk_popover_new(relative.toWidget())
 	}
-	return wrapPopover(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapPopover(unsafe.Pointer(c))
 }
 
-func wrapPopover(obj *glib.Object) *Popover {
-	return &Popover{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapPopover(p unsafe.Pointer) *Popover {
+	if bin := wrapBin(p); bin != nil {
+		return &Popover{Bin: *bin}
+	}
+	return nil
 }

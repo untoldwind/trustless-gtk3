@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // EventBox is a representation of GTK's GtkEventBox.
@@ -17,20 +15,21 @@ type EventBox struct {
 
 // native returns a pointer to the underlying GtkEventBox.
 func (v *EventBox) native() *C.GtkEventBox {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkEventBox)(p)
+	return (*C.GtkEventBox)(v.Native())
 }
 
 // EventBoxNew is a wrapper around gtk_event_box_new().
 func EventBoxNew() *EventBox {
 	c := C.gtk_event_box_new()
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapEventBox(obj)
+	return wrapEventBox(unsafe.Pointer(c))
 }
 
-func wrapEventBox(obj *glib.Object) *EventBox {
-	return &EventBox{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapEventBox(p unsafe.Pointer) *EventBox {
+	if bin := wrapBin(p); bin != nil {
+		return &EventBox{Bin: *bin}
+	}
+	return nil
 }

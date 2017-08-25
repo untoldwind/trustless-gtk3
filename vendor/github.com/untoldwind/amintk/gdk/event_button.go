@@ -12,6 +12,9 @@ type EventButton struct {
 }
 
 func (v *EventButton) native() *C.GdkEventButton {
+	if v == nil {
+		return nil
+	}
 	return (*C.GdkEventButton)(unsafe.Pointer(v.Event.native()))
 }
 

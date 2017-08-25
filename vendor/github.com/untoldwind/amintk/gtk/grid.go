@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Grid is a representation of GTK's GtkGrid.
@@ -18,26 +16,24 @@ type Grid struct {
 
 // native returns a pointer to the underlying GtkGrid.
 func (v *Grid) native() *C.GtkGrid {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkGrid)(p)
+	return (*C.GtkGrid)(v.Native())
 }
 
 // GridNew is a wrapper around gtk_grid_new().
 func GridNew() *Grid {
 	c := C.gtk_grid_new()
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapGrid(obj)
+	return wrapGrid(unsafe.Pointer(c))
 }
 
-func wrapGrid(obj *glib.Object) *Grid {
-	o := wrapOrientable(obj)
-	return &Grid{
-		Container:  Container{Widget{glib.InitiallyUnowned{Object: obj}}},
-		Orientable: *o,
+func wrapGrid(p unsafe.Pointer) *Grid {
+	if container := wrapContainer(p); container != nil {
+		o := wrapOrientable(container.Object)
+		return &Grid{Container: *container, Orientable: *o}
 	}
+	return nil
 }
 
 // Attach is a wrapper around gtk_grid_attach().

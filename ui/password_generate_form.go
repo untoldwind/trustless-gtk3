@@ -40,7 +40,7 @@ func newPasswordGenerateForm(store *state.Store, logger logging.Logger) *passwor
 
 	refreshButton := gtk.ButtonNewFromIconName("view-refresh-symbolic", gtk.IconSizeButton)
 	w.Attach(refreshButton, 1, 0, 1, 1)
-	refreshButton.Connect("clicked", w.generate)
+	refreshButton.OnClicked(w.generate)
 
 	stackSwitcher := gtk.StackSwitcherNew()
 	w.Attach(stackSwitcher, 0, 1, 2, 1)
@@ -52,7 +52,7 @@ func newPasswordGenerateForm(store *state.Store, logger logging.Logger) *passwor
 	w.stack.AddTitled(w.passwordGenerateWordParams, "words", "Words")
 
 	takeButton := gtk.ButtonNewWithLabel("Take")
-	takeButton.Connect("clicked", w.onTake)
+	takeButton.OnClicked(w.onTake)
 	w.Attach(takeButton, 0, 3, 2, 1)
 
 	w.generate()

@@ -38,7 +38,7 @@ func newSecretsFrame(store *state.Store, logger logging.Logger) (*secretsFrame, 
 	secretDetail := newSecretDetail(store, logger)
 
 	paned.Add2(secretDetail)
-	paned.ConnectAfter("realize", func() {
+	paned.OnAfterRealize(func() {
 		paned.SetPosition(300)
 	})
 

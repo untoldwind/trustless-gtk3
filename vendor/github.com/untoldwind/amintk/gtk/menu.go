@@ -8,7 +8,6 @@ import (
 	"unsafe"
 
 	"github.com/untoldwind/amintk/gdk"
-	"github.com/untoldwind/amintk/glib"
 )
 
 // Menu is a representation of GTK's GtkMenu.
@@ -23,25 +22,27 @@ type IMenu interface {
 
 // native() returns a pointer to the underlying GtkMenu.
 func (v *Menu) native() *C.GtkMenu {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkMenu)(p)
+	return (*C.GtkMenu)(v.Native())
 }
 
 func (v *Menu) toMenu() *C.GtkMenu {
 	return v.native()
 }
 
-// MenuNew() is a wrapper around gtk_menu_new().
+// MenuNew is a wrapper around gtk_menu_new().
 func MenuNew() *Menu {
 	c := C.gtk_menu_new()
-	return wrapMenu(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapMenu(unsafe.Pointer(c))
 }
 
-func wrapMenu(obj *glib.Object) *Menu {
-	return &Menu{MenuShell{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapMenu(p unsafe.Pointer) *Menu {
+	if menuShell := wrapMenuShell(p); menuShell != nil {
+		return &Menu{MenuShell: *menuShell}
+	}
+	return nil
 }
 
 // PopupAtPointer is a wrapper for gtk_menu_popup_at_pointer(), on older versions it uses PopupAtMouseCursor

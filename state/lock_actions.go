@@ -23,7 +23,7 @@ func (s *Store) ActionUnlock(identity api.Identity, passphrase string) error {
 	}
 	s.dispatch(func(state *State) *State {
 		state.Locked = false
-		state.allEntries = list.Entries
+		state.allEntries = list
 		state.entryFilter = ""
 		state.entryFilterDeleted = false
 		state.Messages = nil

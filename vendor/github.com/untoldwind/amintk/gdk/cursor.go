@@ -5,8 +5,6 @@ package gdk
 // #include <gdk/gdk.h>
 import "C"
 import (
-	"unsafe"
-
 	"github.com/untoldwind/amintk/glib"
 )
 
@@ -17,9 +15,8 @@ type Cursor struct {
 
 // native returns a pointer to the underlying GtkComboBox.
 func (v *Cursor) native() *C.GdkCursor {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GdkCursor)(p)
+	return (*C.GdkCursor)(v.Native())
 }

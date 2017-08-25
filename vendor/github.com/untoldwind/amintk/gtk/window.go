@@ -7,8 +7,6 @@ import "C"
 import (
 	"errors"
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // WindowType is a representation of GTK's GtkWindowType.
@@ -26,24 +24,23 @@ type Window struct {
 
 // native returns a pointer to the underlying GtkWindow.
 func (v *Window) native() *C.GtkWindow {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkWindow)(p)
+	return (*C.GtkWindow)(v.Native())
 }
 
 // WindowNew is a wrapper around gtk_window_new().
 func WindowNew(t WindowType) *Window {
 	c := C.gtk_window_new(C.GtkWindowType(t))
-	if c == nil {
-		return nil
-	}
-	return wrapWindow(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapWindow(unsafe.Pointer(c))
 }
 
-func wrapWindow(obj *glib.Object) *Window {
-	return &Window{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapWindow(p unsafe.Pointer) *Window {
+	if bin := wrapBin(p); bin != nil {
+		return &Window{Bin: *bin}
+	}
+	return nil
 }
 
 // SetTitle is a wrapper around gtk_window_set_title().

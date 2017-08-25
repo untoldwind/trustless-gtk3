@@ -13,11 +13,17 @@ type MenuShell struct {
 
 // native returns a pointer to the underlying GtkMenuShell.
 func (v *MenuShell) native() *C.GtkMenuShell {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkMenuShell)(p)
+	return (*C.GtkMenuShell)(v.Native())
+}
+
+func wrapMenuShell(p unsafe.Pointer) *MenuShell {
+	if container := wrapContainer(p); container != nil {
+		return &MenuShell{Container: *container}
+	}
+	return nil
 }
 
 // Append is a wrapper around gtk_menu_shell_append().

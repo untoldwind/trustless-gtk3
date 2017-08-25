@@ -10,7 +10,7 @@ func main() {
 	win := gtk.WindowNew(gtk.WindowToplevel)
 
 	win.SetTitle("Simple Example")
-	win.Connect("destroy", func() {
+	win.OnDestroy(func() {
 		gtk.MainQuit()
 	})
 

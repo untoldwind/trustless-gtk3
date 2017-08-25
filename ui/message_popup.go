@@ -27,7 +27,7 @@ func newMessagePopup(store *state.Store, message *state.Message, logger logging.
 	messageLabel := gtk.LabelNew(message.Text)
 	contentArea.Add(messageLabel)
 
-	w.Connect("response", func() {
+	w.OnResponse(func(responseId int) {
 		store.ActionRemoveMessage(message)
 	})
 

@@ -23,7 +23,7 @@ func newUrlsEdit(logger logging.Logger) *urlsEdit {
 	}
 
 	w.addButton.SetHAlign(gtk.AlignStart)
-	w.addButton.Connect("clicked", w.onAdd)
+	w.addButton.OnClicked(w.onAdd)
 	w.Add(w.addButton)
 
 	return w

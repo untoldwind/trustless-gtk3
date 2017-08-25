@@ -22,11 +22,10 @@ type IStyleProvider interface {
 
 // native returns a pointer to the underlying GtkCssProvider.
 func (v *CssProvider) native() *C.GtkCssProvider {
-	if v == nil || v.Object == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkCssProvider)(p)
+	return (*C.GtkCssProvider)(v.Native())
 }
 
 func (v *CssProvider) toStyleProvider() *C.GtkStyleProvider {
@@ -39,11 +38,14 @@ func (v *CssProvider) toStyleProvider() *C.GtkStyleProvider {
 // CssProviderNew is a wrapper around gtk_css_provider_new().
 func CssProviderNew() *CssProvider {
 	c := C.gtk_css_provider_new()
-	return wrapCssProvider(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapCssProvider(unsafe.Pointer(c))
 }
 
-func wrapCssProvider(obj *glib.Object) *CssProvider {
-	return &CssProvider{Object: obj}
+func wrapCssProvider(p unsafe.Pointer) *CssProvider {
+	if obj := glib.WrapObject(p); obj != nil {
+		return &CssProvider{Object: obj}
+	}
+	return nil
 }
 
 // LoadFromData is a wrapper around gtk_css_provider_load_from_data().

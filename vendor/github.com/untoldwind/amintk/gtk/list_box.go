@@ -6,18 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
-)
-
-// SelectionMode is a representation of GTK's GtkSelectionMode.
-type SelectionMode int
-
-const (
-	SelectionModeNone     SelectionMode = C.GTK_SELECTION_NONE
-	SelectionModeSingle   SelectionMode = C.GTK_SELECTION_SINGLE
-	SelectionModeBrowse   SelectionMode = C.GTK_SELECTION_BROWSE
-	SelectionModeMultiple SelectionMode = C.GTK_SELECTION_MULTIPLE
 )
 
 // ListBox is a representation of GTK's GtkListBox.
@@ -27,21 +15,23 @@ type ListBox struct {
 
 // native returns a pointer to the underlying GtkListBox.
 func (v *ListBox) native() *C.GtkListBox {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkListBox)(p)
+	return (*C.GtkListBox)(v.Native())
 }
 
 // ListBoxNew is a wrapper around gtk_list_box_new().
 func ListBoxNew() *ListBox {
 	c := C.gtk_list_box_new()
-	return wrapListBox(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapListBox(unsafe.Pointer(c))
 }
 
-func wrapListBox(obj *glib.Object) *ListBox {
-	return &ListBox{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}
+func wrapListBox(p unsafe.Pointer) *ListBox {
+	if container := wrapContainer(p); container != nil {
+		return &ListBox{Container: *container}
+	}
+	return nil
 }
 
 // SetSelectionMode is a wrapper around gtk_list_box_set_selection_mode().
@@ -63,8 +53,11 @@ func (v *ListBox) SelectRow(row *ListBoxRow) {
 // GetSelectedRow is a wrapper around gtk_list_box_get_selected_row().
 func (v *ListBox) GetSelectedRow() *ListBoxRow {
 	c := C.gtk_list_box_get_selected_row(v.native())
-	if c == nil {
-		return nil
+	return wrapListBoxRow(unsafe.Pointer(c))
+}
+
+func (v *ListBox) OnAfterRowSelected(callback func(*ListBoxRow)) {
+	if v != nil {
+		v.ConnectAfter("row-selected", CallbackListBoxRowVoid(callback))
 	}
-	return wrapListBoxRow(glib.WrapObject(unsafe.Pointer(c)))
 }

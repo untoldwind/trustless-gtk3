@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // PolicyType is a representation of GTK's GtkPolicyType.
@@ -26,25 +24,27 @@ type ScrolledWindow struct {
 
 // native returns a pointer to the underlying GtkScrolledWindow.
 func (v *ScrolledWindow) native() *C.GtkScrolledWindow {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkScrolledWindow)(p)
+	return (*C.GtkScrolledWindow)(v.Native())
 }
 
-// ScrolledWindowNew() is a wrapper around gtk_scrolled_window_new().
+// ScrolledWindowNew is a wrapper around gtk_scrolled_window_new().
 func ScrolledWindowNew(hadjustment, vadjustment *Adjustment) *ScrolledWindow {
 	c := C.gtk_scrolled_window_new(hadjustment.native(),
 		vadjustment.native())
-	return wrapScrolledWindow(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapScrolledWindow(unsafe.Pointer(c))
 }
 
-func wrapScrolledWindow(obj *glib.Object) *ScrolledWindow {
-	return &ScrolledWindow{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapScrolledWindow(p unsafe.Pointer) *ScrolledWindow {
+	if bin := wrapBin(p); bin != nil {
+		return &ScrolledWindow{Bin: *bin}
+	}
+	return nil
 }
 
-// SetPolicy() is a wrapper around gtk_scrolled_window_set_policy().
+// SetPolicy is a wrapper around gtk_scrolled_window_set_policy().
 func (v *ScrolledWindow) SetPolicy(hScrollbarPolicy, vScrollbarPolicy PolicyType) {
 	C.gtk_scrolled_window_set_policy(v.native(),
 		C.GtkPolicyType(hScrollbarPolicy),

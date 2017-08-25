@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // ArrowType is a representation of GTK's GtkArrowType.
@@ -28,22 +26,23 @@ type MenuButton struct {
 
 // native() returns a pointer to the underlying GtkButton.
 func (v *MenuButton) native() *C.GtkMenuButton {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkMenuButton)(p)
+	return (*C.GtkMenuButton)(v.Native())
 }
 
 // MenuButtonNew is a wrapper around gtk_menu_button_new().
 func MenuButtonNew() *MenuButton {
 	c := C.gtk_menu_button_new()
-	return wrapMenuButton(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapMenuButton(unsafe.Pointer(c))
 }
 
-func wrapMenuButton(obj *glib.Object) *MenuButton {
-	return &MenuButton{ToggleButton{Button{Bin{Container{Widget{
-		glib.InitiallyUnowned{obj}}}}}}}
+func wrapMenuButton(p unsafe.Pointer) *MenuButton {
+	if toggleButton := wrapToggleButton(p); toggleButton != nil {
+		return &MenuButton{ToggleButton: *toggleButton}
+	}
+	return nil
 }
 
 // SetPopup is a wrapper around gtk_menu_button_set_popup().
@@ -57,7 +56,7 @@ func (v *MenuButton) GetPopup() *Menu {
 	if c == nil {
 		return nil
 	}
-	return wrapMenu(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapMenu(unsafe.Pointer(c))
 }
 
 // SetDirection is a wrapper around gtk_menu_button_set_direction().
@@ -79,8 +78,5 @@ func (v *MenuButton) SetPopover(popover *Popover) {
 // GetPopover is a wrapper around gtk_menu_button_get_popover().
 func (v *MenuButton) GetPopover() *Popover {
 	c := C.gtk_menu_button_get_popover(v.native())
-	if c == nil {
-		return nil
-	}
-	return wrapPopover(glib.WrapObject(unsafe.Pointer(c)))
+	return wrapPopover(unsafe.Pointer(c))
 }

@@ -27,7 +27,7 @@ func (s *Store) ActionRefreshEntries() error {
 		return err
 	}
 	s.dispatch(func(state *State) *State {
-		state.allEntries = list.Entries
+		state.allEntries = list
 		state.CurrentSecret = nil
 		state.SelectedEntry = nil
 		state.CurrentEdit = false
@@ -48,10 +48,13 @@ func (s *Store) ActionSelectEntry(entryID string) error {
 	}
 
 	s.dispatch(func(state *State) *State {
+		if state.SelectedEntry != current {
+			return state
+		}
 		state.SelectedEntry = nil
 		state.CurrentSecret = secret
 		state.CurrentEdit = false
-		for _, entry := range state.allEntries {
+		for _, entry := range state.allEntries.Entries {
 			if entry.ID == entryID {
 				state.SelectedEntry = entry
 				return state
@@ -82,8 +85,11 @@ func (s *Store) ActionMarkDeleted(secretID string) {
 }
 
 func filterSortAndVisible(state *State) *State {
-	state.VisibleEntries = make([]*api.SecretEntry, 0, len(state.allEntries))
-	for _, entry := range state.allEntries {
+	state.VisibleEntries = &api.SecretList{
+		AllTags: state.allEntries.AllTags,
+		Entries: make([]*api.SecretEntry, 0, len(state.allEntries.Entries)),
+	}
+	for _, entry := range state.allEntries.Entries {
 		if entry.Deleted != state.entryFilterDeleted {
 			continue
 		}
@@ -93,11 +99,11 @@ func filterSortAndVisible(state *State) *State {
 		if state.entryFilter != "" && !strings.HasPrefix(strings.ToLower(entry.Name), state.entryFilter) {
 			continue
 		}
-		state.VisibleEntries = append(state.VisibleEntries, entry)
+		state.VisibleEntries.Entries = append(state.VisibleEntries.Entries, entry)
 	}
 
 	if state.SelectedEntry != nil {
-		for _, entry := range state.VisibleEntries {
+		for _, entry := range state.VisibleEntries.Entries {
 			if entry == state.SelectedEntry {
 				return state
 			}

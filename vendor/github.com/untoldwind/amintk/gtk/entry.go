@@ -29,26 +29,29 @@ const (
 // Entry is a representation of GTK's GtkEntry.
 type Entry struct {
 	Widget
+	Editable
 }
 
 // native returns a pointer to the underlying GtkEntry.
 func (v *Entry) native() *C.GtkEntry {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkEntry)(p)
+	return (*C.GtkEntry)(v.Native())
 }
 
 // EntryNew is a wrapper around gtk_entry_new().
 func EntryNew() *Entry {
 	c := C.gtk_entry_new()
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapEntry(obj)
+	return wrapEntry(unsafe.Pointer(c))
 }
 
-func wrapEntry(obj *glib.Object) *Entry {
-	return &Entry{Widget{glib.InitiallyUnowned{Object: obj}}}
+func wrapEntry(p unsafe.Pointer) *Entry {
+	if widget := wrapWidget(p); widget != nil {
+		e := wrapEditable(widget.Object)
+		return &Entry{Widget: *widget, Editable: *e}
+	}
+	return nil
 }
 
 // SetInputPurpose is a wrapper around gtk_entry_set_input_purpose().
@@ -89,4 +92,10 @@ func (v *Entry) SetVisibility(visible bool) {
 func (v *Entry) GetVisibility() bool {
 	c := C.gtk_entry_get_visibility(v.native())
 	return gobool(c)
+}
+
+func (v *Entry) OnActivate(callback func()) {
+	if v != nil {
+		v.Connect("activate", glib.CallbackVoidVoid(callback))
+	}
 }

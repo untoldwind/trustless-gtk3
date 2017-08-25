@@ -38,7 +38,7 @@ label:active {
 		styleContext: styleContext,
 	}
 
-	w.Connect("realize", func() {
+	w.OnAfterRealize(func() {
 		window := w.GetWindow()
 		display := gdk.DisplayGetDefault()
 		cursor := display.CursorFromName("pointer")
@@ -59,5 +59,8 @@ func (w *sidebarLabel) setActive(active bool) {
 }
 
 func (w *sidebarLabel) onClicked(handler func()) {
-	w.Connect("button-press-event", handler)
+	w.OnButtonPressEvent(func(event *gdk.Event) bool {
+		handler()
+		return false
+	})
 }

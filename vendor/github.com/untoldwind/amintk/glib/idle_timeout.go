@@ -46,12 +46,12 @@ func sourceAttach(src *C.struct__GSource, f func()) (SourceHandle, error) {
 	// f returns false.  The error is ignored here, as this will
 	// always be a function.
 	var closure *C.GClosure
-	closure, _ = ClosureNew(func() {
+	closure = ClosureNew(CallbackVoidVoid(func() {
 		f()
 
 		C.g_closure_invalidate(closure)
 		C.g_source_destroy(src)
-	})
+	}))
 
 	// Set closure to run as a callback when the idle source runs.
 	C.g_source_set_closure(src, closure)

@@ -6,8 +6,6 @@ package gtk
 import "C"
 import (
 	"unsafe"
-
-	"github.com/untoldwind/amintk/glib"
 )
 
 // ComboBox is a representation of GTK's GtkComboBox.
@@ -17,31 +15,32 @@ type ComboBox struct {
 
 // native returns a pointer to the underlying GtkComboBox.
 func (v *ComboBox) native() *C.GtkComboBox {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkComboBox)(p)
+	return (*C.GtkComboBox)(v.Native())
 }
 
 // ComboBoxNew is a wrapper around gtk_combo_box_new().
-func ComboBoxNew() (*ComboBox, error) {
+func ComboBoxNew() *ComboBox {
 	c := C.gtk_combo_box_new()
-	obj := glib.WrapObject(unsafe.Pointer(c))
-	return wrapComboBox(obj), nil
+	return wrapComboBox(unsafe.Pointer(c))
 }
 
-func wrapComboBox(obj *glib.Object) *ComboBox {
-	return &ComboBox{Bin{Container{Widget{glib.InitiallyUnowned{Object: obj}}}}}
+func wrapComboBox(p unsafe.Pointer) *ComboBox {
+	if bin := wrapBin(p); bin != nil {
+		return &ComboBox{Bin: *bin}
+	}
+	return nil
 }
 
-// GetActive() is a wrapper around gtk_combo_box_get_active().
+// GetActive is a wrapper around gtk_combo_box_get_active().
 func (v *ComboBox) GetActive() int {
 	c := C.gtk_combo_box_get_active(v.native())
 	return int(c)
 }
 
-// SetActive() is a wrapper around gtk_combo_box_set_active().
+// SetActive is a wrapper around gtk_combo_box_set_active().
 func (v *ComboBox) SetActive(index int) {
 	C.gtk_combo_box_set_active(v.native(), C.gint(index))
 }

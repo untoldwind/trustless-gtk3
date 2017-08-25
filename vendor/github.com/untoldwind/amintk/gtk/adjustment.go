@@ -17,11 +17,10 @@ type Adjustment struct {
 
 // native returns a pointer to the underlying GtkAdjustment.
 func (v *Adjustment) native() *C.GtkAdjustment {
-	if v == nil || v.GObject == nil {
+	if v == nil {
 		return nil
 	}
-	p := unsafe.Pointer(v.GObject)
-	return (*C.GtkAdjustment)(p)
+	return (*C.GtkAdjustment)(v.Native())
 }
 
 // AdjustmentNew is a wrapper around gtk_adjustment_new().
