@@ -107,6 +107,16 @@ func PixbufNewFromFileAtScale(filename string, width, height int, preserveAspect
 	return WrapPixbuf(unsafe.Pointer(res)), nil
 }
 
+func PixbufNewFromStream(input *glib.InputStream) (*Pixbuf, error) {
+	var err *C.GError = nil
+	c := C.gdk_pixbuf_new_from_stream((*C.GInputStream)(input.Native()), nil, &err)
+	if err != nil {
+		defer C.g_error_free(err)
+		return nil, errors.New(C.GoString((*C.char)(err.message)))
+	}
+	return WrapPixbuf(unsafe.Pointer(c)), nil
+}
+
 // GetColorspace is a wrapper around gdk_pixbuf_get_colorspace().
 func (v *Pixbuf) GetColorspace() Colorspace {
 	c := C.gdk_pixbuf_get_colorspace(v.native())
@@ -232,6 +242,26 @@ func (v *Pixbuf) SaveJPEG(path string, quality int) error {
 	return nil
 }
 
+// SaveJPEGBuffer is a wrapper around gdk_pixbuf_save_png_buffer().
+// Compression is a number between 0...9
+func (v *Pixbuf) SaveJPEGBuffer(quality int) ([]byte, error) {
+	cquality := C.CString(strconv.Itoa(quality))
+	defer C.free(unsafe.Pointer(cquality))
+
+	var pBuffer *C.gchar
+	var pLen C.gsize
+	var err *C.GError
+	c := C._gdk_pixbuf_save_jpeg_buffer(v.native(), &pBuffer, &pLen, &err, cquality)
+	if !gobool(c) {
+		defer C.g_error_free(err)
+		return nil, errors.New(C.GoString((*C.char)(err.message)))
+	}
+	defer C.free(unsafe.Pointer(pBuffer))
+	buffer := C.GoBytes(unsafe.Pointer(pBuffer), C.int(pLen))
+
+	return buffer, nil
+}
+
 // SavePNG is a wrapper around gdk_pixbuf_save().
 // Compression is a number between 0...9
 func (v *Pixbuf) SavePNG(path string, compression int) error {
@@ -247,4 +277,24 @@ func (v *Pixbuf) SavePNG(path string, compression int) error {
 		return errors.New(C.GoString((*C.char)(err.message)))
 	}
 	return nil
+}
+
+// SavePNGBuffer is a wrapper around gdk_pixbuf_save_png_buffer().
+// Compression is a number between 0...9
+func (v *Pixbuf) SavePNGBuffer(compression int) ([]byte, error) {
+	ccompression := C.CString(strconv.Itoa(compression))
+	defer C.free(unsafe.Pointer(ccompression))
+
+	var pBuffer *C.gchar
+	var pLen C.gsize
+	var err *C.GError
+	c := C._gdk_pixbuf_save_png_buffer(v.native(), &pBuffer, &pLen, &err, ccompression)
+	if !gobool(c) {
+		defer C.g_error_free(err)
+		return nil, errors.New(C.GoString((*C.char)(err.message)))
+	}
+	defer C.free(unsafe.Pointer(pBuffer))
+	buffer := C.GoBytes(unsafe.Pointer(pBuffer), C.int(pLen))
+
+	return buffer, nil
 }

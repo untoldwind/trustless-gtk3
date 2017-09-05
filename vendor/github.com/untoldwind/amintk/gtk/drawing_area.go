@@ -4,7 +4,11 @@ package gtk
 // #include <stdlib.h>
 // #include <gtk/gtk.h>
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+
+	"github.com/untoldwind/amintk/cairo"
+)
 
 // DrawingArea is a representation of GTK's GtkDrawingArea.
 type DrawingArea struct {
@@ -30,4 +34,10 @@ func wrapDrawingArea(p unsafe.Pointer) *DrawingArea {
 func DrawingAreaNew() *DrawingArea {
 	c := C.gtk_drawing_area_new()
 	return wrapDrawingArea(unsafe.Pointer(c))
+}
+
+func (v *DrawingArea) OnDraw(callback func(context *cairo.Context) bool) {
+	if v != nil {
+		v.Connect("draw", cairo.CallbackContextBoolean(callback))
+	}
 }

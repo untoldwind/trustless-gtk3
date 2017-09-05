@@ -5,6 +5,8 @@ package gtk
 // #include <gtk/gtk.h>
 import "C"
 import (
+	"unsafe"
+
 	"github.com/untoldwind/amintk/glib"
 )
 
@@ -57,4 +59,18 @@ func (v *StyleContext) AddProvider(provider IStyleProvider, prio uint) {
 // SetState is a wrapper around gtk_style_context_set_state().
 func (v *StyleContext) SetState(state StateFlags) {
 	C.gtk_style_context_set_state(v.native(), C.GtkStateFlags(state))
+}
+
+func (v *StyleContext) AddClass(class_name string) {
+	cstr := C.CString(class_name)
+	defer C.free(unsafe.Pointer(cstr))
+
+	C.gtk_style_context_add_class(v.native(), (*C.gchar)(cstr))
+}
+
+func (v *StyleContext) RemoveClass(class_name string) {
+	cstr := C.CString(class_name)
+	defer C.free(unsafe.Pointer(cstr))
+
+	C.gtk_style_context_remove_class(v.native(), (*C.gchar)(cstr))
 }

@@ -26,8 +26,8 @@ func createViewerFile(t *testing.T) {
 
 	viewerFile := glib.NewObject(fixtures.ViewerFileGetType())
 
-	require.Equal(glib.TYPE_STRING, viewerFile.GetPropertyType("filename"))
-	require.Equal(glib.TYPE_UINT, viewerFile.GetPropertyType("zoom_level"))
+	require.Equal(glib.TypeString, viewerFile.GetPropertyType("filename"))
+	require.Equal(glib.TypeUInt, viewerFile.GetPropertyType("zoom_level"))
 
 	require.Equal("", viewerFile.GetProperty("filename").GetString())
 	zoom, ok := viewerFile.GetProperty("zoom_level").GetUInt()

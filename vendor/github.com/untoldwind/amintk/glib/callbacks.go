@@ -26,7 +26,7 @@ func (c CallbackIntVoid) Call(args []Value) *Value {
 	var arg0 int
 	var arg0Ok bool
 	for _, value := range args {
-		if _, fundamental := value.Type(); fundamental == TYPE_INT {
+		if _, fundamental := value.Type(); fundamental == TypeInt {
 			arg0, arg0Ok = value.GetInt()
 			break
 		}

@@ -42,7 +42,7 @@ func ValueAlloc() *Value {
 	//We need to double check before unsetting, to prevent:
 	//`g_value_unset: assertion 'G_IS_VALUE (value)' failed`
 	runtime.SetFinalizer(v, func(f *Value) {
-		if t, _ := f.Type(); t == TYPE_INVALID || t == TYPE_NONE {
+		if t, _ := f.Type(); t == TypeInvalid || t == TypeNone {
 			C.g_free(C.gpointer(f.GValue))
 			return
 		}
@@ -73,64 +73,64 @@ func ValueInit(t Type) *Value {
 // returns a non-nil error if the conversion was unsuccessful.
 func GValue(v interface{}) *Value {
 	if v == nil {
-		val := ValueInit(TYPE_POINTER)
+		val := ValueInit(TypePointer)
 		val.SetPointer(unsafe.Pointer(nil))
 		return val
 	}
 
 	switch e := v.(type) {
 	case bool:
-		val := ValueInit(TYPE_BOOLEAN)
+		val := ValueInit(TypeBoolean)
 		val.SetBool(e)
 		return val
 
 	case int8:
-		val := ValueInit(TYPE_CHAR)
+		val := ValueInit(TypeChar)
 		val.SetSChar(e)
 		return val
 
 	case int64:
-		val := ValueInit(TYPE_INT64)
+		val := ValueInit(TypeInt64)
 		val.SetInt64(e)
 		return val
 
 	case int:
-		val := ValueInit(TYPE_INT)
+		val := ValueInit(TypeInt)
 		val.SetInt(e)
 		return val
 
 	case uint8:
-		val := ValueInit(TYPE_UCHAR)
+		val := ValueInit(TypeUChar)
 		val.SetUChar(e)
 		return val
 
 	case uint64:
-		val := ValueInit(TYPE_UINT64)
+		val := ValueInit(TypeUInt64)
 		val.SetUInt64(e)
 		return val
 
 	case uint:
-		val := ValueInit(TYPE_UINT)
+		val := ValueInit(TypeUInt)
 		val.SetUInt(e)
 		return val
 
 	case float32:
-		val := ValueInit(TYPE_FLOAT)
+		val := ValueInit(TypeFloat)
 		val.SetFloat(e)
 		return val
 
 	case float64:
-		val := ValueInit(TYPE_DOUBLE)
+		val := ValueInit(TypeDouble)
 		val.SetDouble(e)
 		return val
 
 	case string:
-		val := ValueInit(TYPE_STRING)
+		val := ValueInit(TypeString)
 		val.SetString(e)
 		return val
 
 	case *Object:
-		val := ValueInit(TYPE_OBJECT)
+		val := ValueInit(TypeObject)
 		val.SetInstance(unsafe.Pointer(e.GObject))
 		return val
 
@@ -139,32 +139,32 @@ func GValue(v interface{}) *Value {
 		rval := reflect.ValueOf(v)
 		switch rval.Kind() {
 		case reflect.Int8:
-			val := ValueInit(TYPE_CHAR)
+			val := ValueInit(TypeChar)
 			val.SetSChar(int8(rval.Int()))
 			return val
 
 		case reflect.Int16:
-			val := ValueInit(TYPE_INT64)
+			val := ValueInit(TypeInt64)
 			val.SetInt64(rval.Int())
 			return val
 
 		case reflect.Int32:
-			val := ValueInit(TYPE_INT64)
+			val := ValueInit(TypeInt64)
 			val.SetInt64(rval.Int())
 			return val
 
 		case reflect.Int64:
-			val := ValueInit(TYPE_INT64)
+			val := ValueInit(TypeInt64)
 			val.SetInt64(rval.Int())
 			return val
 
 		case reflect.Int:
-			val := ValueInit(TYPE_INT)
+			val := ValueInit(TypeInt)
 			val.SetInt(int(rval.Int()))
 			return val
 
 		case reflect.Uintptr, reflect.Ptr:
-			val := ValueInit(TYPE_POINTER)
+			val := ValueInit(TypePointer)
 			val.SetPointer(unsafe.Pointer(rval.Pointer()))
 			return val
 		}
@@ -178,7 +178,7 @@ func GValue(v interface{}) *Value {
 // does not hold a Type, or otherwise returns the Type of v.
 func (v *Value) Type() (actual Type, fundamental Type) {
 	if v == nil || C._g_is_value(v.GValue) == 0 {
-		return TYPE_INVALID, TYPE_INVALID
+		return TypeInvalid, TypeInvalid
 	}
 	cActual := C._g_value_type(v.GValue)
 	cFundamental := C._g_value_fundamental(cActual)
@@ -195,7 +195,7 @@ func (v *Value) SetBool(val bool) {
 }
 
 func (v *Value) GetBool() (value bool, ok bool) {
-	if _, fundamental := v.Type(); fundamental == TYPE_BOOLEAN {
+	if _, fundamental := v.Type(); fundamental == TypeBoolean {
 		c := C.g_value_get_boolean(v.GValue)
 		return gobool(c), true
 	}
@@ -218,7 +218,7 @@ func (v *Value) SetInt(val int) {
 }
 
 func (v *Value) GetInt() (int, bool) {
-	if _, fundamental := v.Type(); fundamental == TYPE_INT {
+	if _, fundamental := v.Type(); fundamental == TypeInt {
 		c := C.g_value_get_int(v.GValue)
 		return int(c), true
 	}
@@ -241,7 +241,7 @@ func (v *Value) SetUInt(val uint) {
 }
 
 func (v *Value) GetUInt() (uint, bool) {
-	if _, fundamental := v.Type(); fundamental == TYPE_UINT {
+	if _, fundamental := v.Type(); fundamental == TypeUInt {
 		c := C.g_value_get_uint(v.GValue)
 		return uint(c), true
 	}
@@ -281,7 +281,7 @@ func (v *Value) GetPointer() unsafe.Pointer {
 }
 
 func (v *Value) GetBoxed() (unsafe.Pointer, bool) {
-	if _, fundamental := v.Type(); fundamental == TYPE_BOXED {
+	if _, fundamental := v.Type(); fundamental == TypeBoxed {
 		c := C.g_value_get_boxed(v.GValue)
 		return unsafe.Pointer(c), true
 	}
@@ -289,7 +289,7 @@ func (v *Value) GetBoxed() (unsafe.Pointer, bool) {
 }
 
 func (v *Value) GetObject() (unsafe.Pointer, bool) {
-	if _, fundamental := v.Type(); fundamental == TYPE_OBJECT {
+	if _, fundamental := v.Type(); fundamental == TypeObject {
 		c := C.g_value_get_object(v.GValue)
 		return unsafe.Pointer(c), true
 	}

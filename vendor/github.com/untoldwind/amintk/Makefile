@@ -1,9 +1,9 @@
-PKGS = ./fixtures/... ./glib/... ./gdk/... ./gtk/...
+PKGS = ./cairo/... ./fixtures/... ./glib/... ./gdk/... ./gtk/...
 
 all: export GOPATH=${PWD}/../../../..
 all: format
 	@echo "--> Build"
-	@go build -i ${PKGS}
+	@go install ${PKGS}
 
 bin.examples: export GOPATH=${PWD}/../../../..
 bin.examples:

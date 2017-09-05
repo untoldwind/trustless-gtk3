@@ -76,14 +76,14 @@ func (v *Object) StopEmission(s string) {
 // If the property is missing it will return TYPE_INVALID and an error.
 func (v *Object) GetPropertyType(name string) Type {
 	if v == nil {
-		return TYPE_INVALID
+		return TypeInvalid
 	}
 	cstr := C.CString(name)
 	defer C.free(unsafe.Pointer(cstr))
 
 	paramSpec := C.g_object_class_find_property(C._g_object_get_class(v.GObject), (*C.gchar)(cstr))
 	if paramSpec == nil {
-		return TYPE_INVALID
+		return TypeInvalid
 	}
 	return Type(paramSpec.value_type)
 }
