@@ -98,10 +98,17 @@ func (w *secretPropertiesDisplay) renderProperties(propertyDefs api.SecretProper
 		w.widgets = append(w.widgets, label)
 		w.Attach(label, 0, w.rows, 1, 1)
 
-		valueDisplay := newSecretValueDisplay(value, propertyDef.Blurred, passwordStrengths[propertyDef.Name], w.logger)
-		valueDisplay.SetHExpand(true)
-		w.widgets = append(w.widgets, valueDisplay)
-		w.Attach(valueDisplay, 1, w.rows, 1, 1)
+		if propertyDef.OTPParams {
+			otpDisplay := newOTPDisplay(value, w.logger)
+			otpDisplay.SetHExpand(true)
+			w.widgets = append(w.widgets, otpDisplay)
+			w.Attach(otpDisplay, 1, w.rows, 1, 1)
+		} else {
+			valueDisplay := newSecretValueDisplay(value, propertyDef.Blurred, passwordStrengths[propertyDef.Name], w.logger)
+			valueDisplay.SetHExpand(true)
+			w.widgets = append(w.widgets, valueDisplay)
+			w.Attach(valueDisplay, 1, w.rows, 1, 1)
+		}
 
 		w.rows++
 	}

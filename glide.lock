@@ -1,5 +1,5 @@
 hash: 61c89bf5e139212ae483ac403f3015e39dce5b914191a2c97211d3ba94bcccdc
-updated: 2017-09-05T12:11:15.105429423+02:00
+updated: 2017-10-03T21:23:55.541953812+02:00
 imports:
 - name: github.com/leanovate/microtools
   version: e7b09151ef9cfe471dbf94bc048f3fcd6784fb9d
@@ -32,13 +32,14 @@ imports:
   - glib
   - gtk
 - name: github.com/untoldwind/trustless
-  version: 65e408e0540d020d35ea0f3c809006a78c6ed24f
+  version: 907db7c225fe991a8d6e95beaa664deb1992fb21
   subpackages:
   - api
   - config
   - daemon
   - secrets
   - secrets/generate
+  - secrets/otp
   - secrets/pgp
   - secrets/remote
   - store
@@ -57,7 +58,7 @@ imports:
   - openpgp/s2k
   - pbkdf2
 - name: golang.org/x/sys
-  version: e48874b42435b4347fc52bdee0424a52abc974d7
+  version: b90f89a1e7a9c1f6b918820b3daa7f08488c8594
   subpackages:
   - unix
 - name: gopkg.in/natefinch/npipe.v2

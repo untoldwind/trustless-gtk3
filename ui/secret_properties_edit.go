@@ -122,6 +122,16 @@ func (w *secretPropertiesEdit) renderProperties(propertyDefs api.SecretPropertyL
 				end := buffer.GetEndIter()
 				return buffer.GetText(start, end, true)
 			}
+		} else if propertyDef.OTPParams {
+			otpEdit := newOTPEdit(w.store, w.logger)
+			w.widgets = append(w.widgets, otpEdit)
+			w.Attach(otpEdit, 1, w.rows, 1, 1)
+
+			value, ok := properties[propertyDef.Name]
+			if ok {
+				otpEdit.setValue(value)
+			}
+			w.propertyGetters[propertyDef.Name] = otpEdit.getValue
 		} else if propertyDef.Blurred {
 			passwordEdit := newSecretPasswordEdit(w.store, w.logger)
 			passwordEdit.SetHExpand(true)
