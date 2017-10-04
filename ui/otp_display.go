@@ -3,6 +3,8 @@ package ui
 import (
 	"time"
 
+	"github.com/untoldwind/amintk/glib"
+
 	"github.com/leanovate/microtools/logging"
 	"github.com/untoldwind/amintk/gtk"
 	"github.com/untoldwind/trustless/secrets/otp"
@@ -16,6 +18,7 @@ type otpDisplay struct {
 	otp             otp.OTP
 	userCode        string
 	validFor        time.Duration
+	timerHandle     glib.SourceHandle
 	logger          logging.Logger
 }
 
@@ -57,6 +60,11 @@ func newOTPDisplay(otpUrl string, parent logging.Logger) *otpDisplay {
 	return w
 }
 
+func (w *otpDisplay) Destroy() {
+	w.timerHandle.Remove()
+	w.Box.Destroy()
+}
+
 func (w *otpDisplay) updateUserCode() {
 	if w.otp == nil {
 		w.copyButton.SetSensitive(false)
@@ -67,4 +75,7 @@ func (w *otpDisplay) updateUserCode() {
 	w.userCodeLabel.SetText(w.userCode)
 	w.expirationLevel.SetMaxValue(float64(w.otp.MaxDuration()))
 	w.expirationLevel.SetValue(float64(w.validFor))
+
+	w.timerHandle.Remove()
+	w.timerHandle, _ = glib.TimeoutAdd(1000, w.updateUserCode)
 }
