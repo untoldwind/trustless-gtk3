@@ -21,13 +21,12 @@ type State struct {
 	Locked             bool
 	AutoLockIn         time.Duration
 	Identities         []api.Identity
-	allEntries         *api.SecretList
 	VisibleEntries     *api.SecretList
 	Messages           []*Message
 	SelectedEntry      *api.SecretEntry
 	CurrentSecret      *api.Secret
 	CurrentEdit        bool
-	entryFilter        string
+	EntryFilter        string
 	entryFilterType    api.SecretType
 	entryFilterDeleted bool
 }
@@ -135,22 +134,14 @@ func (s *Store) checkStatus() {
 			state.AutoLockIn = 0
 			return state
 		} else if state.Locked && !status.Locked {
-			list, err := s.secrets.List(context.Background(), api.SecretListFilter{
-				Deleted: true,
-			})
-			if err != nil {
-				s.logger.ErrorErr(err)
-			} else {
-				state.allEntries = list
-			}
 			state.Locked = false
 			if status.AutolockAt != nil {
 				state.AutoLockIn = status.AutolockAt.Sub(time.Now())
 			} else {
 				state.AutoLockIn = 0
 			}
-			state.entryFilter = ""
-			return filterSortAndVisible(state)
+			state.EntryFilter = ""
+			return s.refresh(state)
 		} else if !status.Locked && status.AutolockAt != nil {
 			autolockIn := status.AutolockAt.Sub(time.Now())
 			if state.AutoLockIn != autolockIn {

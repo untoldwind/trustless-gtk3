@@ -2,7 +2,6 @@ package state
 
 import (
 	"context"
-	"strings"
 	"time"
 
 	"github.com/untoldwind/trustless/api"
@@ -10,30 +9,49 @@ import (
 
 func (s *Store) ActionUpdateEntryFilter(filter string) {
 	s.dispatch(func(state *State) *State {
-		state.entryFilter = strings.ToLower(filter)
-		return filterSortAndVisible(state)
+		state.EntryFilter = filter
+		return s.refresh(state)
 	})
 }
 
 func (s *Store) ActionRefreshEntries() error {
-	if s.CurrentState().Locked {
-		return nil
-	}
-	list, err := s.secrets.List(context.Background(), api.SecretListFilter{
-		Deleted: true,
-	})
-	if err != nil {
-		s.logger.ErrorErr(err)
-		return err
-	}
-	s.dispatch(func(state *State) *State {
-		state.allEntries = list
-		state.CurrentSecret = nil
-		state.SelectedEntry = nil
-		state.CurrentEdit = false
-		return filterSortAndVisible(state)
-	})
+	s.dispatch(s.refresh)
 	return nil
+}
+
+func (s *Store) refresh(state *State) *State {
+	if state.Locked {
+		return state
+	}
+	go func() {
+		list, err := s.secrets.List(context.Background(), api.SecretListFilter{
+			Name:    state.EntryFilter,
+			Type:    state.entryFilterType,
+			Deleted: state.entryFilterDeleted,
+		})
+		if err != nil {
+			s.logger.ErrorErr(err)
+			return
+		}
+		s.dispatch(func(state *State) *State {
+			state.VisibleEntries = list
+			state.CurrentSecret = nil
+			state.SelectedEntry = nil
+			state.CurrentEdit = false
+
+			if state.SelectedEntry != nil {
+				for _, entry := range state.VisibleEntries.Entries {
+					if entry == state.SelectedEntry {
+						return state
+					}
+				}
+				state.SelectedEntry = nil
+				state.CurrentSecret = nil
+			}
+			return state
+		})
+	}()
+	return state
 }
 
 func (s *Store) ActionSelectEntry(entryID string) error {
@@ -54,7 +72,7 @@ func (s *Store) ActionSelectEntry(entryID string) error {
 		state.SelectedEntry = nil
 		state.CurrentSecret = secret
 		state.CurrentEdit = false
-		for _, entry := range state.allEntries.Entries {
+		for _, entry := range state.VisibleEntries.Entries {
 			if entry.ID == entryID {
 				state.SelectedEntry = entry
 				return state
@@ -82,35 +100,4 @@ func (s *Store) ActionMarkDeleted(secretID string) {
 	if err := s.ActionRefreshEntries(); err != nil {
 		s.logger.ErrorErr(err)
 	}
-}
-
-func filterSortAndVisible(state *State) *State {
-	state.VisibleEntries = &api.SecretList{
-		AllTags: state.allEntries.AllTags,
-		Entries: make([]*api.SecretEntry, 0, len(state.allEntries.Entries)),
-	}
-	for _, entry := range state.allEntries.Entries {
-		if entry.Deleted != state.entryFilterDeleted {
-			continue
-		}
-		if state.entryFilterType != "" && entry.Type != state.entryFilterType {
-			continue
-		}
-		if state.entryFilter != "" && !strings.HasPrefix(strings.ToLower(entry.Name), state.entryFilter) {
-			continue
-		}
-		state.VisibleEntries.Entries = append(state.VisibleEntries.Entries, entry)
-	}
-
-	if state.SelectedEntry != nil {
-		for _, entry := range state.VisibleEntries.Entries {
-			if entry == state.SelectedEntry {
-				return state
-			}
-		}
-		state.SelectedEntry = nil
-		state.CurrentSecret = nil
-	}
-
-	return state
 }

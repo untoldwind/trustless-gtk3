@@ -72,6 +72,7 @@ func (w *headerBar) onLock() {
 }
 
 func (w *headerBar) onStateChange(prev, next *state.State) {
+	w.searchEntry.SetText(next.EntryFilter)
 	level := float64(next.AutoLockIn / time.Second)
 	if level < 0 {
 		level = 0

@@ -14,22 +14,14 @@ func (s *Store) ActionUnlock(identity api.Identity, passphrase string) error {
 		s.logger.ErrorErr(err)
 		return err
 	}
-	list, err := s.secrets.List(context.Background(), api.SecretListFilter{
-		Deleted: true,
-	})
-	if err != nil {
-		s.logger.ErrorErr(err)
-		return err
-	}
 	s.dispatch(func(state *State) *State {
 		state.Locked = false
-		state.allEntries = list
-		state.entryFilter = ""
+		state.EntryFilter = ""
 		state.entryFilterDeleted = false
 		state.Messages = nil
 		state.CurrentSecret = nil
 		state.CurrentEdit = false
-		return filterSortAndVisible(state)
+		return s.refresh(state)
 	})
 	return nil
 }
