@@ -4,7 +4,9 @@ package gtk
 // #include <stdlib.h>
 // #include <gtk/gtk.h>
 import "C"
-import "unsafe"
+import (
+	"unsafe"
+)
 
 // Frame is a representation of GTK's GtkFrame.
 type AspectFrame struct {

@@ -25,6 +25,7 @@ func newSecretValueDisplay(value string, blurred bool, passwordStrength *api.Pas
 	}
 	label.SetHAlign(gtk.AlignStart)
 	label.SetVAlign(gtk.AlignStart)
+	label.SetLineWrap(true)
 
 	w := &secretValueDisplay{
 		Box:    box,

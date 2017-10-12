@@ -6,6 +6,7 @@ import (
 	"github.com/leanovate/microtools/logging"
 	"github.com/untoldwind/amintk/gdk"
 	"github.com/untoldwind/amintk/gtk"
+	"github.com/untoldwind/amintk/pango"
 )
 
 type urlLabel struct {
@@ -41,6 +42,7 @@ func newUrlLabel(logger logging.Logger, url string) (*urlLabel, error) {
 
 	label := gtk.LabelNew(url)
 	label.SetMarkup("<span color=\"blue\">" + html.EscapeString(url) + "</span>")
+	label.SetEllipsize(pango.EllipsizeModeEnd)
 	w.Add(label)
 
 	return w, nil

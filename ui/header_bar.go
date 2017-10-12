@@ -74,6 +74,7 @@ func (w *headerBar) onLock() {
 func (w *headerBar) onStateChange(prev, next *state.State) {
 	if next.Locked {
 		w.searchEntry.SetText("")
+		w.searchEntry.GrabFocus()
 	}
 	level := float64(next.AutoLockIn / time.Second)
 	if level < 0 {

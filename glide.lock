@@ -1,5 +1,5 @@
 hash: 61c89bf5e139212ae483ac403f3015e39dce5b914191a2c97211d3ba94bcccdc
-updated: 2017-10-10T10:20:57.917363536+02:00
+updated: 2017-10-12T22:56:18.74601483+02:00
 imports:
 - name: github.com/junegunn/fzf
   version: 6db1136a6cd9e4054a5b723e7ba4fc16645980c7
@@ -38,12 +38,13 @@ imports:
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
 - name: github.com/untoldwind/amintk
-  version: 7c0ed8fda6c1d8035b59d941b7474bd46d2736a4
+  version: 03a787e7d3cbbdd4ef7bbcab8626f0fb1b9e4524
   subpackages:
   - cairo
   - gdk
   - glib
   - gtk
+  - pango
 - name: github.com/untoldwind/trustless
   version: 3e82852bfbed8588af4afbdb46525e3b3ea6d6d5
   subpackages:
@@ -71,7 +72,7 @@ imports:
   - openpgp/s2k
   - pbkdf2
 - name: golang.org/x/sys
-  version: 314a259e304ff91bd6985da2a7149bbf91237993
+  version: 43eea11bc92608addb41b8a406b0407495c106f6
   subpackages:
   - unix
 - name: gopkg.in/natefinch/npipe.v2

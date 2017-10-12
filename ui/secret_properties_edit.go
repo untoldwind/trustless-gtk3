@@ -72,7 +72,9 @@ func (w *secretPropertiesEdit) getEdit() ([]string, map[string]string, error) {
 	}
 	properties := map[string]string{}
 	for name, getter := range w.propertyGetters {
-		properties[name] = getter()
+		if value := getter(); value != "" {
+			properties[name] = value
+		}
 	}
 
 	return urls, properties, nil
