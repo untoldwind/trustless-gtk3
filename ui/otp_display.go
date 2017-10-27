@@ -122,7 +122,7 @@ func (w *otpDisplay) updateUserCode() {
 		return
 	}
 	if w.showUrl {
-		w.userCodeLabel.SetText(w.otp.GetURL().String())
+		w.userCodeLabel.SetText(w.otp.GetEncodedSecret())
 		w.expirationLevel.Hide()
 		return
 	}
