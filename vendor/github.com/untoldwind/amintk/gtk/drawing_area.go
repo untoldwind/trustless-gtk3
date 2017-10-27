@@ -7,6 +7,8 @@ import "C"
 import (
 	"unsafe"
 
+	"github.com/untoldwind/amintk/glib"
+
 	"github.com/untoldwind/amintk/cairo"
 )
 
@@ -36,8 +38,6 @@ func DrawingAreaNew() *DrawingArea {
 	return wrapDrawingArea(unsafe.Pointer(c))
 }
 
-func (v *DrawingArea) OnDraw(callback func(context *cairo.Context) bool) {
-	if v != nil {
-		v.Connect("draw", cairo.CallbackContextBoolean(callback))
-	}
+func (v *DrawingArea) OnDraw(callback func(context *cairo.Context) bool) *glib.SignalHandle {
+	return v.Connect("draw", cairo.CallbackContextBoolean(callback))
 }

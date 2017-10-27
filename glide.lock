@@ -1,5 +1,5 @@
-hash: 61c89bf5e139212ae483ac403f3015e39dce5b914191a2c97211d3ba94bcccdc
-updated: 2017-10-12T22:56:18.74601483+02:00
+hash: 7295313a8a793a933eb3a414fc804fb1d87063b316f8b39720049123cee3e5b2
+updated: 2017-10-27T17:42:17.637303024+02:00
 imports:
 - name: github.com/junegunn/fzf
   version: 6db1136a6cd9e4054a5b723e7ba4fc16645980c7
@@ -37,8 +37,13 @@ imports:
   version: e180dbdc8da04c4fa04272e875ce64949f38bd3e
 - name: github.com/Sirupsen/logrus
   version: ba1b36c82c5e05c4f912a88eab0dcd91a171688f
+- name: github.com/skip2/go-qrcode
+  version: 695fc75a09738f9be56aaa3aecfd7dac28e66b63
+  subpackages:
+  - bitset
+  - reedsolomon
 - name: github.com/untoldwind/amintk
-  version: 03a787e7d3cbbdd4ef7bbcab8626f0fb1b9e4524
+  version: f88761518aa36d957bd10ee5f63b5b038a4b9b18
   subpackages:
   - cairo
   - gdk
@@ -72,7 +77,7 @@ imports:
   - openpgp/s2k
   - pbkdf2
 - name: golang.org/x/sys
-  version: 43eea11bc92608addb41b8a406b0407495c106f6
+  version: 314a259e304ff91bd6985da2a7149bbf91237993
   subpackages:
   - unix
 - name: gopkg.in/natefinch/npipe.v2

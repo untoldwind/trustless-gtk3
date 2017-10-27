@@ -88,8 +88,6 @@ func (v *Button) GetImage() *Widget {
 	return wrapWidget(unsafe.Pointer(c))
 }
 
-func (v *Button) OnClicked(callback func()) {
-	if v != nil {
-		v.Connect("clicked", glib.CallbackVoidVoid(callback))
-	}
+func (v *Button) OnClicked(callback func()) *glib.SignalHandle {
+	return v.Connect("clicked", glib.CallbackVoidVoid(callback))
 }

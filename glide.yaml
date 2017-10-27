@@ -10,3 +10,4 @@ import:
   - gtk
 - package: github.com/shibukawa/configdir
 - package: github.com/nbutton23/zxcvbn-go
+- package: github.com/skip2/go-qrcode

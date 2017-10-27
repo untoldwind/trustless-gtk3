@@ -8,8 +8,6 @@ import (
 	"unsafe"
 )
 
-type SignalHandle uint
-
 // Object is a representation of GLib's GObject.
 type Object struct {
 	GObject *C.GObject
@@ -120,19 +118,22 @@ func (v *Object) SetProperty(name string, value interface{}) {
 	}
 }
 
-func (v *Object) connectClosure(after bool, detailedSignal string, f Callback) SignalHandle {
+func (v *Object) connectClosure(after bool, detailedSignal string, f Callback) *SignalHandle {
+	if v == nil {
+		return nil
+	}
 	cstr := C.CString(detailedSignal)
 	defer C.free(unsafe.Pointer(cstr))
 
 	closure := ClosureNew(f)
 	c := C.g_signal_connect_closure(C.gpointer(v.GObject), (*C.gchar)(cstr), closure, gbool(after))
-	return SignalHandle(c)
+	return &SignalHandle{handle: c, object: v}
 }
 
-func (v *Object) Connect(detailedSignal string, f Callback) SignalHandle {
+func (v *Object) Connect(detailedSignal string, f Callback) *SignalHandle {
 	return v.connectClosure(false, detailedSignal, f)
 }
 
-func (v *Object) ConnectAfter(detailedSignal string, f Callback) SignalHandle {
+func (v *Object) ConnectAfter(detailedSignal string, f Callback) *SignalHandle {
 	return v.connectClosure(true, detailedSignal, f)
 }

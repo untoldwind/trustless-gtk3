@@ -67,8 +67,6 @@ func (v *MenuItem) GetLabel() string {
 	return C.GoString((*C.char)(l))
 }
 
-func (v *MenuItem) OnActivate(callback func()) {
-	if v != nil {
-		v.Connect("activate", glib.CallbackVoidVoid(callback))
-	}
+func (v *MenuItem) OnActivate(callback func()) *glib.SignalHandle {
+	return v.Connect("activate", glib.CallbackVoidVoid(callback))
 }

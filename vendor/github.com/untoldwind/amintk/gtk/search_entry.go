@@ -36,8 +36,6 @@ func wrapSearchEntry(p unsafe.Pointer) *SearchEntry {
 	return nil
 }
 
-func (v *Widget) OnSearchChanged(callback func()) {
-	if v != nil {
-		v.ConnectAfter("search-changed", glib.CallbackVoidVoid(callback))
-	}
+func (v *Widget) OnSearchChanged(callback func()) *glib.SignalHandle {
+	return v.ConnectAfter("search-changed", glib.CallbackVoidVoid(callback))
 }

@@ -94,8 +94,6 @@ func (v *Entry) GetVisibility() bool {
 	return gobool(c)
 }
 
-func (v *Entry) OnActivate(callback func()) {
-	if v != nil {
-		v.Connect("activate", glib.CallbackVoidVoid(callback))
-	}
+func (v *Entry) OnActivate(callback func()) *glib.SignalHandle {
+	return v.Connect("activate", glib.CallbackVoidVoid(callback))
 }

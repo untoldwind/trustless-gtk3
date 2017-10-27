@@ -6,6 +6,8 @@ package gtk
 import "C"
 import (
 	"unsafe"
+
+	"github.com/untoldwind/amintk/glib"
 )
 
 // ListBox is a representation of GTK's GtkListBox.
@@ -56,8 +58,6 @@ func (v *ListBox) GetSelectedRow() *ListBoxRow {
 	return wrapListBoxRow(unsafe.Pointer(c))
 }
 
-func (v *ListBox) OnAfterRowSelected(callback func(*ListBoxRow)) {
-	if v != nil {
-		v.ConnectAfter("row-selected", CallbackListBoxRowVoid(callback))
-	}
+func (v *ListBox) OnAfterRowSelected(callback func(*ListBoxRow)) *glib.SignalHandle {
+	return v.ConnectAfter("row-selected", CallbackListBoxRowVoid(callback))
 }

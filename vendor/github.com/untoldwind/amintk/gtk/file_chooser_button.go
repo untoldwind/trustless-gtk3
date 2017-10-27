@@ -42,8 +42,6 @@ func wrapFileChooserButton(p unsafe.Pointer) *FileChooserButton {
 	return nil
 }
 
-func (v *FileChooserButton) OnFileSet(callback func()) {
-	if v != nil {
-		v.Connect("file-set", glib.CallbackVoidVoid(callback))
-	}
+func (v *FileChooserButton) OnFileSet(callback func()) *glib.SignalHandle {
+	return v.Connect("file-set", glib.CallbackVoidVoid(callback))
 }
