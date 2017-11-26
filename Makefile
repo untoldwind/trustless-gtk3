@@ -85,11 +85,14 @@ dist/windows64/%.dll: /usr/x86_64-w64-mingw32/bin/%.dll
 	@mkdir -p dist/windows64
 	@cp $< $@
 
-glide.install:
-	@echo "--> glide install"
-	@go get github.com/Masterminds/glide
-	@go build -v -o bin/glide github.com/Masterminds/glide
-	@bin/glide install -v
+dep.install:
+	@echo "-> dep install"
+	@go get github.com/golang/dep/cmd/dep
+	@go build -v -o bin/dep github.com/golang/dep/cmd/dep
+
+dep.ensure: dep.install
+	@bin/dep ensure
+	@bin/dep prune
 
 release:
 	@echo "--> github-release"
