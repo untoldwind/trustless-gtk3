@@ -1,4 +1,3 @@
-PKGS= ./ui/... ./state/... .
 
 VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)
 
@@ -11,7 +10,7 @@ all: format
 #format: export GOPATH=${PWD}/../../../..
 format:
 	@echo "--> Running go fmt"
-	@go fmt ${PKGS}
+	@go fmt ./...
 
 install.local: export GOPATH=${PWD}/../../../..
 install.local: all

@@ -21,12 +21,13 @@ test:
 	@go test -i -v ${PKGS}
 	@go test -v ${PKGS}
 
-
-dep.install:
+bin/dep:
 	@echo "-> dep install"
 	@go get github.com/golang/dep/cmd/dep
 	@go build -v -o bin/dep github.com/golang/dep/cmd/dep
 
-dep.ensure: dep.install
+dep.ensure: bin/dep
 	@bin/dep ensure
 	@bin/dep prune
+	@find vendor -name "*_test.go" -exec rm -f {} \;
+	@find vendor -type f ! -name "*.go" -exec rm -f {} \;

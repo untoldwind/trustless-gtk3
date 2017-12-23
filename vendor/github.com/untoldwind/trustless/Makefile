@@ -1,5 +1,3 @@
-PKGS = ./api/... ./commands/... ./config/... ./daemon/... ./secrets/... ./store/... .
-
 VERSION ?= $(shell date -u +%Y%m%d.%H%M%S)
 
 all: export GOPATH=${PWD}/../../../..
@@ -19,12 +17,12 @@ install.local: all
 format: export GOPATH=${PWD}/../../../..
 format:
 	@echo "--> Running go fmt"
-	@go fmt ${PKGS}
+	@go fmt ./...
 
 test: export GOPATH=${PWD}/../../../..
 test:
 	@echo "--> Running tests"
-	@go test -v ${PKGS}
+	@go test -v ./...
 
 cross: bin.linux64 bin.macos bin.windows64 bin.windows32
 
@@ -67,14 +65,15 @@ bin.windows32:
 	@go build -ldflags "-s -w -X github.com/untoldwind/trustless/config.version=${VERSION}" -v -o bin/trustless-windows-x86.exe github.com/untoldwind/trustless
 	@go build -ldflags "-s -w -X github.com/untoldwind/trustless/config.version=${VERSION}" -v -o bin/trustless-native-windows-x86.exe github.com/untoldwind/trustless/native
 
-dep.install:
+bin/dep:
 	@echo "-> dep install"
 	@go get github.com/golang/dep/cmd/dep
 	@go build -v -o bin/dep github.com/golang/dep/cmd/dep
 
-dep.ensure: dep.install
+dep.ensure: bin/dep
 	@bin/dep ensure
 	@bin/dep prune
+	@find vendor -name "*_test.go" -exec rm -f {} \;
 
 release: cross
 	@echo "--> github-release"

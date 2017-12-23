@@ -20,7 +20,9 @@
 #  version = "2.4.0"
 
 required = [
-    "gopkg.in/urfave/cli.v2",
+    "github.com/mitchellh/go-homedir",
+    "github.com/spf13/cobra",
+    "github.com/spf13/viper",
     "github.com/shibukawa/configdir",
     "github.com/nbutton23/zxcvbn-go",
     "github.com/skip2/go-qrcode",
