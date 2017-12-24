@@ -22,7 +22,7 @@
 [[projects]]
   branch = "master"
   name = "github.com/hashicorp/hcl"
-  packages = [".","hcl/ast","hcl/parser","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
+  packages = [".","hcl/ast","hcl/parser","hcl/printer","hcl/scanner","hcl/strconv","hcl/token","json/parser","json/scanner","json/token"]
   revision = "23c074d0eceb2b8a5bfdbb271ab780cde70f05a8"
 
 [[projects]]
@@ -129,10 +129,10 @@
   version = "v1.1.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/cobra"
   packages = ["."]
-  revision = "7b2c5ac9fc04fc5efafb60700713d4fa609b777b"
-  version = "v0.0.1"
+  revision = "ccaecb155a2177302cb56cae929251a256d0f646"
 
 [[projects]]
   branch = "master"
@@ -147,10 +147,10 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "25b30aa063fc18e48662b86996252eabdcf2f0c7"
-  version = "v1.0.0"
+  revision = "1a0c4a370c3e8286b835467d2dfcdaf636c3538b"
 
 [[projects]]
   branch = "master"
@@ -180,7 +180,7 @@
   branch = "master"
   name = "github.com/untoldwind/trustless"
   packages = ["api","config","daemon","secrets","secrets/generate","secrets/otp","secrets/pgp","secrets/remote","store","store/localdir","store/model"]
-  revision = "91f754dcebd0b2b0c07b058f057edc98fedc7cb3"
+  revision = "74a1d8e83c629238e46d6faf3f15d34904c9a994"
 
 [[projects]]
   branch = "master"
@@ -216,6 +216,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "f867eb78574fd24129cf3e6a81304e4bdf15236088b4e96bc700b2a3508f4473"
+  inputs-digest = "b409b252c0eaaca94432954064622a7283443b867c2f1f65f80bc7d4c0dbfed9"
   solver-name = "gps-cdcl"
   solver-version = 1

@@ -107,7 +107,9 @@ func readConfig() (*config.Settings, error) {
 	}
 
 	if err := viper.ReadInConfig(); err != nil {
-		return nil, err
+		if err := writeDefaultConfig(); err != nil {
+			return nil, err
+		}
 	}
 
 	if err := viper.Unmarshal(&settings); err != nil {
@@ -121,6 +123,26 @@ func readConfig() (*config.Settings, error) {
 	}
 
 	return &settings, nil
+}
+
+func writeDefaultConfig() error {
+	if viper.GetString("store-url") == "" {
+		viper.Set("store-url", config.DefaultStoreURL())
+	}
+	if viper.GetString("node-id") == "" {
+		nodeId, err := config.GenerateNodeID()
+		if err != nil {
+			return err
+		}
+		viper.Set("node-id", nodeId)
+	}
+	home, err := homedir.Dir()
+	if err != nil {
+		showError(err)
+	}
+	os.MkdirAll(filepath.Join(home, ".config"), 0700)
+
+	return viper.WriteConfigAs(filepath.Join(home, ".config", "trustless.toml"))
 }
 
 func run(cmd *cobra.Command, args []string) {

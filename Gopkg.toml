@@ -36,3 +36,16 @@ required = [
 [[constraint]]
     name = "github.com/untoldwind/amintk"
     branch = "master"
+
+[[constraint]]
+    name = "golang.org/x/crypto"
+    source = "github.com/untoldwind/crypto"
+    branch = "master"
+
+[[constraint]]
+    name =  "github.com/spf13/cobra"
+    branch = "master"
+
+[[constraint]]
+    name =  "github.com/spf13/viper"
+    branch = "master"
