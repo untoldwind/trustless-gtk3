@@ -43,6 +43,7 @@ func showError(err error) {
 }
 
 func init() {
+	cobra.MousetrapHelpText = ""
 	cobra.OnInitialize(initConfig)
 
 	rootCommand.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default ./trustless.toml, $HOME/.trustless/trustless.toml")
