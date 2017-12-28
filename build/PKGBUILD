@@ -1,0 +1,25 @@
+pkgname=trustless-gtk3
+pkgver=1.0
+pkgrel=1
+pkgdesc="GTK3 frontend for trustless"
+arch=('x86_64')
+url="http://github.com/untoldwind/trustless-gtk3"
+license=('MIT')
+makedepends=('go')
+
+build() {
+    VERSION="$pkgver-$pkgrel"
+    mkdir -p "$PWD/src/github.com/untoldwind"
+    mkdir -p "$PWD/pkg"
+    ln -s "$PWD/../.." "$PWD/src/github.com/untoldwind/trustless-gtk3"
+
+    GOPATH="$PWD" go build -ldflags "-s -w" -v -i -o bin/trustless-gtk3 github.com/untoldwind/trustless-gtk3
+}
+
+package() {
+    mkdir -p "$pkgdir/usr/bin"
+    cp "$PWD/bin/trustless-gtk3" "$pkgdir/usr/bin"
+
+    mkdir -p "$pkgdir/usr/lib/systemd/user"
+    cp "$PWD/../trustless.service" "$pkgdir/usr/lib/systemd/user"
+}
