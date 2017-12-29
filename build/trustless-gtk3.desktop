@@ -1,0 +1,8 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Trustless GTK3
+Exec="/usr/bin/trustless-gtk3"
+Comment=Do not trust anyone
+Categories=Utility;Security;
+Terminal=false

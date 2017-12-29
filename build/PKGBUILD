@@ -20,6 +20,6 @@ package() {
     mkdir -p "$pkgdir/usr/bin"
     cp "$PWD/bin/trustless-gtk3" "$pkgdir/usr/bin"
 
-    mkdir -p "$pkgdir/usr/lib/systemd/user"
-    cp "$PWD/../trustless.service" "$pkgdir/usr/lib/systemd/user"
+    mkdir -p "$pkgdir/usr/share/applications"
+    cp "$PWD/../trustless-gtk3.desktop" "$pkgdir/usr/share/applications"
 }
