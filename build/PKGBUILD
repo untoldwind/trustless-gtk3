@@ -1,6 +1,6 @@
 pkgname=trustless-gtk3
 pkgver=1.0
-pkgrel=1
+pkgrel=2
 pkgdesc="GTK3 frontend for trustless"
 arch=('x86_64')
 url="http://github.com/untoldwind/trustless-gtk3"

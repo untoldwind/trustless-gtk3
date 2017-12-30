@@ -2,10 +2,10 @@
 
 
 [[projects]]
-  name = "github.com/Sirupsen/logrus"
-  packages = ["."]
-  revision = "d682213848ed68c0a260ca37d6dd5ace8423f5ba"
-  version = "v1.0.4"
+  name = "github.com/awnumar/memguard"
+  packages = [".","memcall"]
+  revision = "b482b0c828e2eeecbfebb05ca965c8d571afaeff"
+  version = "v0.13.2"
 
 [[projects]]
   name = "github.com/davecgh/go-spew"
@@ -42,7 +42,7 @@
   branch = "master"
   name = "github.com/leanovate/microtools"
   packages = ["logging","rest","routing"]
-  revision = "e7b09151ef9cfe471dbf94bc048f3fcd6784fb9d"
+  revision = "ec6c570b0eae794fbb322c63403ecd66036ad85c"
 
 [[projects]]
   name = "github.com/magiconair/properties"
@@ -114,13 +114,13 @@
   branch = "master"
   name = "github.com/skip2/go-qrcode"
   packages = [".","bitset","reedsolomon"]
-  revision = "80895b4a9eff675bc0f8ea09f60106bca9ac44c8"
+  revision = "cf5f9fa2f0d847edb8e038db7ed975e239095e1a"
 
 [[projects]]
   name = "github.com/spf13/afero"
   packages = [".","mem"]
-  revision = "8d919cbe7e2627e417f3e45c3c0e489a5b7e2536"
-  version = "v1.0.0"
+  revision = "ec3a3111d1e1bdff38a61e09d5a5f5e974905611"
+  version = "v1.0.1"
 
 [[projects]]
   name = "github.com/spf13/cast"
@@ -150,7 +150,7 @@
   branch = "master"
   name = "github.com/spf13/viper"
   packages = ["."]
-  revision = "1a0c4a370c3e8286b835467d2dfcdaf636c3538b"
+  revision = "aafc9e6bc7b7bb53ddaa75a5ef49a17d6e654be5"
 
 [[projects]]
   branch = "master"
@@ -180,26 +180,26 @@
   branch = "master"
   name = "github.com/untoldwind/trustless"
   packages = ["api","config","daemon","secrets","secrets/generate","secrets/otp","secrets/pgp","secrets/remote","store","store/localdir","store/model"]
-  revision = "74a1d8e83c629238e46d6faf3f15d34904c9a994"
+  revision = "69e5c604b1f03c5e9b7e3a71f8bfb16cc4cd2e6d"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/crypto"
-  packages = ["cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","pbkdf2","scrypt","ssh/terminal"]
+  packages = ["cast5","openpgp","openpgp/armor","openpgp/elgamal","openpgp/errors","openpgp/packet","openpgp/s2k","pbkdf2","scrypt"]
   revision = "6217826bd297ae6dcdc999a87063952c037bc67e"
   source = "github.com/untoldwind/crypto"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/sys"
-  packages = ["unix"]
+  packages = ["unix","windows"]
   revision = "83801418e1b59fb1880e363299581ee543af32ca"
 
 [[projects]]
   branch = "master"
   name = "golang.org/x/text"
   packages = ["internal/gen","internal/triegen","internal/ucd","transform","unicode/cldr","unicode/norm"]
-  revision = "eb22672bea55af56d225d4e35405f4d2e9f062a0"
+  revision = "e19ae1496984b1c655b8044a65c0300a3c878dd3"
 
 [[projects]]
   branch = "v2"
