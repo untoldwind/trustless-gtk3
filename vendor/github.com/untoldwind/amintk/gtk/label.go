@@ -130,8 +130,7 @@ func (v *Label) GetEllipsize() pango.EllipsizeMode {
 
 // SetEllipsize is a wrapper around gtk_label_set_ellipsize().
 func (v *Label) SetEllipsize(mode pango.EllipsizeMode) {
-	C.gtk_label_set_ellipsize(v.native(), C.PangoEllipsizeMode(
-		mode))
+	C.gtk_label_set_ellipsize(v.native(), C.PangoEllipsizeMode(mode))
 }
 
 // GetCurrentUri is a wrapper around gtk_label_get_current_uri().

@@ -27,11 +27,11 @@ func newPasswordGenerateForm(store *state.Store, logger logging.Logger) *passwor
 	passwordGenerateWordParams := newPasswordGenerateWordParams(logger)
 
 	w := &passwordGenerateForm{
-		Grid:   grid,
-		logger: logger.WithField("package", "ui").WithField("component", "passwordGenerateForm"),
-		store:  store,
-		entry:  entry,
-		stack:  stack,
+		Grid:                       grid,
+		logger:                     logger.WithField("package", "ui").WithField("component", "passwordGenerateForm"),
+		store:                      store,
+		entry:                      entry,
+		stack:                      stack,
 		passwordGenerateCharParams: passwordGenerateCharParams,
 		passwordGenerateWordParams: passwordGenerateWordParams,
 	}
